@@ -746,56 +746,50 @@ function setMode(m) {
 // ═══════════════════════════════════════════════════
 //  CAMERA — reads IP from Firebase /agribot/data/ip
 // ═══════════════════════════════════════════════════
+
 function startCam(ip) {
   if (!ip) return;
+
   camStarted = true;
+
   const img = document.getElementById('cam-img');
-  // Your ESP32 serves MJPEG stream on port 80 at /stream
-  // force refresh + reconnect
-img.style.display = 'none';
-document.getElementById('cam-ph').style.display = 'flex';
 
-img.src = '';
-setTimeout(() => {
-  img.src = 'http://' + ip + '/stream?t=' + Date.now();
-}, 300);
+  img.style.display = 'none';
+  document.getElementById('cam-ph').style.display = 'flex';
 
-img.onload = () => {
-  document.getElementById('cam-ph').style.display = 'none';
-  img.style.display = 'block';
-  document.getElementById('cam-led').className = 'led g';
-  document.getElementById('cam-tag').className = 'tag tg';
-  document.getElementById('cam-tag').textContent = 'LIVE';
-  document.getElementById('cam-status-txt').textContent = 'STREAMING';
-  slog('Camera connected → http://' + ip + '/stream', 'g');
-};
-
-img.onerror = () => {
-  document.getElementById('cam-status-txt').textContent = 'RETRYING';
-  slog('Camera reconnecting...', 'a');
+  img.src = '';
 
   setTimeout(() => {
-    startCam(ip);
-  }, 3000);
-};
-  document.getElementById('cam-url-lbl').textContent = img.src;
-  document.getElementById('cam-stream-url').textContent = img.src;
+    img.src = 'http://' + ip + '/stream?t=' + Date.now();
+  }, 300);
+
+  document.getElementById('cam-url-lbl').textContent =
+    'http://' + ip + '/stream';
+
+  document.getElementById('cam-stream-url').textContent =
+    'http://' + ip + '/stream';
+
   img.onload = () => {
     document.getElementById('cam-ph').style.display = 'none';
     img.style.display = 'block';
+
     document.getElementById('cam-led').className = 'led g';
     document.getElementById('cam-tag').className = 'tag tg';
     document.getElementById('cam-tag').textContent = 'LIVE';
     document.getElementById('cam-status-txt').textContent = 'STREAMING';
-    slog('Camera stream active → http://'+ip+'/stream', 'g');
+
+    slog('Camera connected → http://' + ip + '/stream', 'g');
   };
+
   img.onerror = () => {
-    document.getElementById('cam-status-txt').textContent = 'FAILED';
-    slog('Camera stream failed at http://'+ip+'/stream', 'r');
-    camStarted = false;
+    document.getElementById('cam-status-txt').textContent = 'RETRYING';
+    slog('Camera reconnecting...', 'a');
+
+    setTimeout(() => {
+      startCam(ip);
+    }, 3000);
   };
 }
-
 function applyCamIP() {
   const ip = document.getElementById('esp-ip-input').value.trim();
   if (!ip) return;
