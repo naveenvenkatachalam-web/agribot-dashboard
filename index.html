@@ -559,7 +559,9 @@ const FB_CONFIG = {
   projectId: "smart-agri-bot-89ea1"
 };
 
-firebase.initializeApp(FB_CONFIG);
+if (!firebase.apps.length) {
+  firebase.initializeApp(FB_CONFIG);
+}
 const db = firebase.database();
 const dataRef = db.ref('/agribot/data');
 const cmdRef  = db.ref('/agribot/cmd');
@@ -647,7 +649,8 @@ function updateAll(d) {
   document.getElementById('servo-mini').textContent = ang + '°';
   sweepAng = ang;
   radarPts.push({a: ang, d: Math.min(dist, 180), t: Date.now()});
-  radarPts = radarPts.filter(p => Date.now()-p.t < 8000);
+if (radarPts.length > 100) radarPts.shift();
+radarPts = radarPts.filter(p => Date.now()-p.t < 8000);
   drawRadar();
 
   // ── Pump ──
@@ -709,20 +712,32 @@ function setDist(valId, barId, val, isCenter) {
   document.getElementById(barId).style.background = color;
 }
 
+let pumpStart = 0;
+
 function setPump(on) {
   if (on === pumpOn) return;
   pumpOn = on;
+
   document.getElementById('pump-tag').textContent = on ? 'RUNNING' : 'STANDBY';
   document.getElementById('pump-tag').className = 'tag ' + (on ? 'tg' : 'tn');
   document.getElementById('pump-ring').className = 'pump-ring' + (on ? ' on' : '');
+
   if (on) {
-    if (!pumpTimer) pumpTimer = setInterval(()=>{
-      pumpSecs++;
-      document.getElementById('pump-time').innerHTML = pumpSecs+' <span style="font-size:13px;color:var(--text3)">s</span>';
-    }, 1000);
+    pumpStart = Date.now();
+
+    if (!pumpTimer) {
+      pumpTimer = setInterval(() => {
+        const secs = Math.floor((Date.now() - pumpStart) / 1000);
+        document.getElementById('pump-time').innerHTML =
+          secs + ' <span style="font-size:13px;color:var(--text3)">s</span>';
+      }, 1000);
+    }
+
   } else {
-    clearInterval(pumpTimer); pumpTimer=null; pumpSecs=0;
-    document.getElementById('pump-time').innerHTML = '0 <span style="font-size:13px;color:var(--text3)">s</span>';
+    clearInterval(pumpTimer);
+    pumpTimer = null;
+    document.getElementById('pump-time').innerHTML =
+      '0 <span style="font-size:13px;color:var(--text3)">s</span>';
   }
 }
 
@@ -781,14 +796,20 @@ function startCam(ip) {
     slog('Camera connected → http://' + ip + '/stream', 'g');
   };
 
-  img.onerror = () => {
-    document.getElementById('cam-status-txt').textContent = 'RETRYING';
-    slog('Camera reconnecting...', 'a');
+let camRetry = null;
 
-    setTimeout(() => {
-      startCam(ip);
-    }, 3000);
-  };
+function retryCam(ip){
+  clearTimeout(camRetry);
+  camRetry = setTimeout(()=>{
+    const img=document.getElementById('cam-img');
+    img.src='http://'+ip+'/stream?t='+Date.now();
+  },3000);
+}
+
+img.onerror = () => {
+  clearTimeout(camRetry);
+  camRetry = setTimeout(() => startCam(ip), 3000);
+};
 }
 function applyCamIP() {
   const ip = document.getElementById('esp-ip-input').value.trim();
