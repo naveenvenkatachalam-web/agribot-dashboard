@@ -315,16 +315,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
   <div class="kkey blank"></div>
 </div>
-        <div class="divline"></div>
-        <!-- PUMP keys P = on, O = off -->
-        <div class="klabel">PUMP — P on · O off</div>
-        <div style="display:flex;gap:6px;justify-content:center">
-          <div class="kkey pump-key" id="k-p" style="width:80px;height:34px"><span class="kletter">P</span><span class="khint">PUMP ON</span></div>
-          <div class="kkey pump-key" id="k-o" style="width:80px;height:34px"><span class="kletter">O</span><span class="khint">PUMP OFF</span></div>
-        </div>
-      </div>
-    </div>
-
+      <div class="divline"></div>
+    </div>    
     <!-- FIREBASE FIELDS -->
     <div class="card fix">
       <div class="chdr"><div class="ctitle">Firebase Fields</div><span class="tag tg" id="last-rx">--</span></div>
@@ -351,6 +343,23 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
       </div>
     </div>
 
+<div class="divline"></div>
+
+<div class="klabel">PUMP — P on · O off</div>
+
+<div style="display:flex;gap:6px;justify-content:center">
+  <div class="kkey pump-key" id="k-p" style="width:80px;height:34px">
+    <span class="kletter">P</span>
+    <span class="khint">PUMP ON</span>
+  </div>
+
+  <div class="kkey pump-key" id="k-o" style="width:80px;height:34px">
+    <span class="kletter">O</span>
+    <span class="khint">PUMP OFF</span>
+  </div>
+</div>
+
+</div>
   </div>
 </div>
 
@@ -650,8 +659,12 @@ function fbSend(){
   if(!val) return;
   const modeMap={AUTO:'AUTO',MANUAL:'MANUAL'};
   const driveMap={FORWARD:'FWD',BACKWARD:'REV',LEFT:'LEFT',RIGHT:'RIGHT',STOP:'STOP'};
-  if(modeMap[val]) cmdRef.set({cmd:'mode',value:val,ts:Date.now()});
-  else if(driveMap[val]) cmdRef.set({cmd:'drive',value:driveMap[val],ts:Date.now()});
+  if(modeMap[val]cmdRef.push({
+  cmd:c,
+  value:v,
+  ts:Date.now()
+});
+  else if(driveMap[val]) cmdRef.set({cmd:'movement',value:driveMap[val],ts:Date.now()});
   else { slog('Unknown: '+val,'r'); return; }
   slog('TX: '+val,'a');
   inp.value='';
@@ -667,7 +680,7 @@ function startCam(ip){
   img.style.display='none';
   document.getElementById('cam-ph').style.display='flex';
   img.src='';
-  setTimeout(()=>{ img.src='http://'+ip+'/stream?t='+Date.now(); },300);
+  setTimeout(()=>{ img.src='http://'+ip+':81/stream'; },300);
   document.getElementById('cam-url-lbl').textContent='http://'+ip+'/stream';
   document.getElementById('cam-stream-url').textContent='http://'+ip+'/stream';
   img.onload=()=>{
