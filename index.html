@@ -656,7 +656,7 @@ function fbSend(){
   const modeMap={AUTO:'AUTO',MANUAL:'MANUAL'};
   const driveMap={FORWARD:'FWD',BACKWARD:'REV',LEFT:'LEFT',RIGHT:'RIGHT',STOP:'STOP'};
   if(modeMap[val]) cmdRef.set({cmd:'mode',value:val,ts:Date.now()});
-  else if(driveMap[val]) cmdRef.set({cmd:'drive',value:driveMap[val],ts:Date.now()});
+  else if(driveMap[val]) cmdRef.set({cmd:'movement',value:driveMap[val],ts:Date.now()});
   else { slog('Unknown: '+val,'r'); return; }
   slog('TX: '+val,'a');
   inp.value='';
@@ -672,7 +672,7 @@ function startCam(ip){
   img.style.display='none';
   document.getElementById('cam-ph').style.display='flex';
   img.src='';
-  setTimeout(()=>{ img.src='http://'+ip+'/stream?t='+Date.now(); },300);
+  setTimeout(()=>{ img.src=`http://${ip}/stream?_cb=${Date.now()}`; },300);
   document.getElementById('cam-url-lbl').textContent='http://'+ip+'/stream';
   document.getElementById('cam-stream-url').textContent='http://'+ip+'/stream';
   img.onload=()=>{
@@ -684,7 +684,7 @@ function startCam(ip){
     document.getElementById('cam-status-txt').textContent='STREAMING';
     slog('Camera connected → http://'+ip+'/stream','g');
   };
-  img.onerror=()=>{ clearTimeout(retry); retry=setTimeout(()=>startCam(ip),3000); };
+  img.onerror=()=>{   document.getElementById('cam-led').className='led r';   document.getElementById('cam-tag').className='tag tr';   document.getElementById('cam-tag').textContent='OFFLINE';   document.getElementById('cam-status-txt').textContent='RECONNECTING';   clearTimeout(retry);   retry=setTimeout(()=>startCam(ip),3000); };
 }
 function applyCamIP(){
   const ip=document.getElementById('esp-ip-input').value.trim();
@@ -805,9 +805,9 @@ document.querySelectorAll('.kkey').forEach(btn => {
   btn.addEventListener('mousedown', press);
   btn.addEventListener('mouseup', release);
   btn.addEventListener('mouseleave', release);
-
-  btn.addEventListener('touchstart', press);
-  btn.addEventListener('touchend', release);
+btn.addEventListener('touchstart', press, {passive:false});
+btn.addEventListener('touchend', release, {passive:false});
+btn.addEventListener('touchcancel', release, {passive:false});
 });
 // ═══════════ BOOT ═══════════
 slog('AgriBot Dashboard v3.0 — Firebase Edition','g');
