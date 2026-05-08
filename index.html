@@ -121,7 +121,21 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 .ssendbtn{background:var(--g4);border:1px solid var(--g3);border-radius:4px;color:var(--g);font-family:var(--mono);font-size:10px;padding:5px 12px;cursor:pointer}
 .fbbar{display:flex;align-items:center;gap:8px;padding:4px 10px;background:var(--g4);border:1px solid var(--g3);border-radius:4px;font-family:var(--mono);font-size:9px;color:var(--g);}
 #radar{display:block;width:100%}
-@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media(max-width:900px){
+
+  .main{
+    grid-template-columns:1fr;
+    overflow-y:auto;
+  }
+
+  body{
+    overflow:auto;
+  }
+
+  .app{
+    height:auto;
+  }
+}
 </style>
 </head>
 <body>
@@ -472,7 +486,7 @@ function updateAll(d) {
   sweepAng=ang;
   radarPts.push({a:ang,d:Math.min(dist,180),t:Date.now()});
   if(radarPts.length>100) radarPts.shift();
-  radarPts=radarPts.filter(p=>Date.now()-p.t<8000);
+  radarPts = radarPts.slice(-100);
   drawRadar();
 
   // Pump
@@ -647,28 +661,105 @@ document.addEventListener('keyup', e => {
 });
 
 // ═══════════ FIREBASE CMD SEND ═══════════
-function sendCmd(c,v){
-  cmdRef.set({cmd:c,value:v,ts:Date.now()})
-    .then(()=> slog('CMD → '+c+'='+v,'a'))
-    .catch(e=> slog('CMD FAIL: '+e.message,'r'));
-}
+let lastCmdTime = 0;
+let lastCmd = '';
 
-function fbSend(){
-  const inp=document.getElementById('sinp');
-  const val=inp.value.trim().toUpperCase();
+function sendCmd(c,v){
+
+  const now = Date.now();
+
+  const payload = c + ':' + v;
+
+  if(payload === lastCmd) return;
+
+  lastCmd = payload;
+
+  lastCmdTime = now;
+
+  cmdRef.push({
+    cmd:c,
+    value:v,
+    ts:now
+  })
+  .then(()=> slog('CMD → '+c+'='+v,'a'))
+  .catch(e=> slog('CMD FAIL: '+e.message,'r'));
+}
+  function fbSend(){
+
+  const inp = document.getElementById('sinp');
+
+  const val = inp.value.trim().toUpperCase();
+
   if(!val) return;
-  const modeMap={AUTO:'AUTO',MANUAL:'MANUAL'};
-  const driveMap={FORWARD:'FWD',BACKWARD:'REV',LEFT:'LEFT',RIGHT:'RIGHT',STOP:'STOP'};
-  if(modeMap[val]cmdRef.push({
-  cmd:c,
-  value:v,
-  ts:Date.now()
-});
-  else if(driveMap[val]) cmdRef.set({cmd:'movement',value:driveMap[val],ts:Date.now()});
-  else { slog('Unknown: '+val,'r'); return; }
+
+  const modeMap = {
+    AUTO:'AUTO',
+    MANUAL:'MANUAL'
+  };
+
+  const driveMap = {
+    FORWARD:'FWD',
+    BACKWARD:'REV',
+    LEFT:'LEFT',
+    RIGHT:'RIGHT',
+    STOP:'STOP'
+  };
+
+  // MODE
+  if(modeMap[val]){
+
+    cmdRef.push({
+      cmd:'mode',
+      value:modeMap[val],
+      ts:Date.now()
+    });
+
+  }
+
+  // MOVEMENT
+  else if(driveMap[val]){
+
+    cmdRef.push({
+      cmd:'movement',
+      value:driveMap[val],
+      ts:Date.now()
+    });
+
+  }
+
+  // PUMP
+  else if(val === 'PUMPON'){
+
+    cmdRef.push({
+      cmd:'pump',
+      value:'true',
+      ts:Date.now()
+    });
+
+  }
+
+  else if(val === 'PUMPOFF'){
+
+    cmdRef.push({
+      cmd:'pump',
+      value:'false',
+      ts:Date.now()
+    });
+
+  }
+
+  else{
+
+    slog('Unknown: '+val,'r');
+
+    return;
+  }
+
   slog('TX: '+val,'a');
+
   inp.value='';
 }
+
 document.getElementById('sinp').addEventListener('keydown',e=>{if(e.key==='Enter')fbSend();});
 
 // ═══════════ CAMERA ═══════════
@@ -681,8 +772,8 @@ function startCam(ip){
   document.getElementById('cam-ph').style.display='flex';
   img.src='';
   setTimeout(()=>{ img.src='http://'+ip+':81/stream'; },300);
-  document.getElementById('cam-url-lbl').textContent='http://'+ip+'/stream';
-  document.getElementById('cam-stream-url').textContent='http://'+ip+'/stream';
+  document.getElementById('cam-url-lbl').textContent='http://'+ip+':81/stream';
+  document.getElementById('cam-stream-url').textContent='http://'+ip+':81/stream';
   img.onload=()=>{
     document.getElementById('cam-ph').style.display='none';
     img.style.display='block';
@@ -690,9 +781,9 @@ function startCam(ip){
     document.getElementById('cam-tag').className='tag tg';
     document.getElementById('cam-tag').textContent='LIVE';
     document.getElementById('cam-status-txt').textContent='STREAMING';
-    slog('Camera connected → http://'+ip+'/stream','g');
+    slog('Camera connected → http://'+ip+':81/stream','g');
   };
-  img.onerror=()=>{ clearTimeout(retry); retry=setTimeout(()=>startCam(ip),3000); };
+  img.onerror = () => {    document.getElementById('cam-tag').className='tag tr';   document.getElementById('cam-tag').textContent='OFFLINE';    document.getElementById('cam-led').className='led r';    clearTimeout(retry);    retry = setTimeout(()=>startCam(ip),3000);  };
 }
 function applyCamIP(){
   const ip=document.getElementById('esp-ip-input').value.trim();
@@ -817,6 +908,30 @@ document.querySelectorAll('.kkey').forEach(btn => {
   btn.addEventListener('touchstart', press);
   btn.addEventListener('touchend', release);
 });
+  // CAMERA AUTO RECONNECT
+setInterval(() => {
+
+  if(camStarted && espIP){
+
+    const img = document.getElementById('cam-img');
+
+    fetch('http://' + espIP + '/', {mode:'no-cors'})
+      .catch(() => {
+
+        img.src = '';
+
+        setTimeout(() => {
+          img.src = 'http://' + espIP + ':81/stream';
+        }, 1000);
+
+        slog('Camera reconnecting…','a');
+
+      });
+  }
+
+}, 8000);
+
+}, 5000);
 // ═══════════ BOOT ═══════════
 slog('AgriBot Dashboard v3.0 — Firebase Edition','g');
 slog('Project: smart-agri-bot-89ea1 · Region: asia-southeast1','g');
