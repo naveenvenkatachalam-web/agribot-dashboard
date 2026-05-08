@@ -23,7 +23,11 @@
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--body);overflow:hidden}
 body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,230,118,.013) 2px,rgba(0,230,118,.013) 4px);}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.45) 100%);}
-.app{display:grid;grid-template-rows:46px 1fr 188px;height:100vh}
+.app{
+  display:grid;
+  grid-template-rows:46px 1fr 140px;
+  height:100vh
+}
 .main{display:grid;grid-template-columns:268px 1fr 284px;gap:1px;background:var(--border);overflow:hidden}
 .col{display:flex;flex-direction:column;gap:1px;background:var(--border);overflow:hidden}
 .hdr{background:var(--bg1);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:100;}
@@ -247,7 +251,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   <div class="col">
 
     <!-- CONTROLS — AUTO/MANUAL switch + panels -->
-    <div class="card">
+    <div class="card" style="flex:1.35;">
       <div class="chdr">
         <div class="ctitle">Controls</div>
         <span class="tag ta" id="ctrl-tag">AUTO MODE</span>
