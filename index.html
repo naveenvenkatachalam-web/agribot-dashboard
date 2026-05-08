@@ -90,6 +90,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 .divline{height:1px;background:var(--border);margin:6px 0}
 /* MANUAL KEYS */
 .keygrid{display:grid;grid-template-columns:repeat(3,38px);gap:4px;justify-content:center}
+  .actuator-grid{
+    row-gap:10px;
+}
 .kkey{height:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:5px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:var(--mono);font-size:11px;font-weight:700;transition:all .1s;cursor:pointer;user-select:none;gap:1px;}
 .kkey span.kletter{font-size:13px;font-weight:700}
 .kkey span.khint{font-size:7px;color:var(--text3);letter-spacing:.03em}
@@ -287,15 +290,27 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
         </div>
         <div class="divline"></div>
         <!-- ACTUATOR arrow keys -->
-        <div class="klabel">ACTUATOR — arrow keys</div>
-        <div class="keygrid" style="margin-bottom:6px">
-          <div class="kkey blank"></div>
-          <div class="kkey act-key" id="k-up"><span class="kletter">↑</span><span class="khint">ACT UP</span></div>
-          <div class="kkey blank"></div>
-          <div class="kkey blank"></div>
-          <div class="kkey act-key" id="k-dn"><span class="kletter">↓</span><span class="khint">ACT DN</span></div>
-          <div class="kkey blank"></div>
-        </div>
+  <!-- ACTUATOR arrow keys -->
+<div class="klabel">ACTUATOR — arrow keys</div>
+<div class="keygrid actuator-grid" style="margin-bottom:10px">
+  <div class="kkey blank"></div>
+
+  <div class="kkey act-key" id="k-up">
+    <span class="kletter">↑</span>
+    <span class="khint">ACT UP</span>
+  </div>
+
+  <div class="kkey blank"></div>
+
+  <div class="kkey blank"></div>
+
+  <div class="kkey act-key" id="k-dn">
+    <span class="kletter">↓</span>
+    <span class="khint">ACT DN</span>
+  </div>
+
+  <div class="kkey blank"></div>
+</div>
         <div class="divline"></div>
         <!-- PUMP keys P = on, O = off -->
         <div class="klabel">PUMP — P on · O off</div>
@@ -547,10 +562,10 @@ function setMode(m){
 
 // ═══════════ KEYBOARD CONTROLS ═══════════
 const keyMap = {
-  'w':  {cmd:'drive',   val:'FWD',   el:'k-w'},
-  's':  {cmd:'drive',   val:'REV',   el:'k-s'},
-  'a':  {cmd:'drive',   val:'LEFT',  el:'k-a'},
-  'd':  {cmd:'drive',   val:'RIGHT', el:'k-d'},
+  'w':  {cmd:'movement',   val:'FWD',   el:'k-w'},
+  's':  {cmd:'movement',   val:'REV',   el:'k-s'},
+  'a':  {cmd:'movement',   val:'LEFT',  el:'k-a'},
+  'd':  {cmd:'movement',   val:'RIGHT', el:'k-d'},
   'ArrowUp':   {cmd:'actuator', val:'UP',   el:'k-up'},
   'ArrowDown': {cmd:'actuator', val:'DOWN', el:'k-dn'},
   'p':  {cmd:'pump',    val:'true',  el:'k-p'},
@@ -559,38 +574,62 @@ const keyMap = {
 
 // stop commands when key released
 const stopMap = {
-  'w':'drive','s':'drive','a':'drive','d':'drive',
+  'w':'movement','s':'movement','a':'movement','d':'movement',
   'ArrowUp':'actuator','ArrowDown':'actuator',
 };
 
 document.addEventListener('keydown', e => {
-  if(currentMode!=='MANUAL') return;
-  if(document.activeElement===document.getElementById('sinp')) return;
-  const k = e.key;
-  if(heldKeys[k]) return; // already held
+  if(currentMode !== 'MANUAL') return;
+  if(document.activeElement === document.getElementById('sinp')) return;
+
+  const k = (e.key.length === 1)
+      ? e.key.toLowerCase()
+      : e.key;
+
+  if(heldKeys[k]) return;
+
   const action = keyMap[k];
   if(!action) return;
+
   e.preventDefault();
-  heldKeys[k]=true;
+  e.stopPropagation();
+
+  heldKeys[k] = true;
+
   sendCmd(action.cmd, action.val);
-  const el=document.getElementById(action.el);
+
+  const el = document.getElementById(action.el);
   if(el) el.classList.add('active');
+
   slog('KEY ↓ '+k+' → '+action.cmd+'='+action.val,'a');
 });
 
 document.addEventListener('keyup', e => {
-  if(currentMode!=='MANUAL') return;
-  const k = e.key;
+  if(currentMode !== 'MANUAL') return;
+
+  const k = (e.key.length === 1)
+      ? e.key.toLowerCase()
+      : e.key;
+
   if(!heldKeys[k]) return;
+
   delete heldKeys[k];
+
   const action = keyMap[k];
   if(!action) return;
+
   e.preventDefault();
-  const el=document.getElementById(action.el);
+  e.stopPropagation();
+
+  const el = document.getElementById(action.el);
   if(el) el.classList.remove('active');
-  // send stop when drive/actuator key released
-  if(stopMap[k]==='drive') sendCmd('drive','STOP');
-  if(stopMap[k]==='actuator') sendCmd('actuator','STOP');
+
+  if(stopMap[k] === 'movement')
+      sendCmd('movement','STOP');
+
+  if(stopMap[k] === 'actuator')
+      sendCmd('actuator','STOP');
+
   slog('KEY ↑ '+k+' → STOP','c');
 });
 
@@ -723,7 +762,44 @@ function slog(msg,type=''){
 function clearLog(){document.getElementById('slog').innerHTML='';}
 function ts(){return new Date().toLocaleTimeString('en',{hour12:false});}
 setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString();},1000);
+document.querySelectorAll('.kkey').forEach(btn => {
 
+  function press(e) {
+    e.preventDefault();
+
+    const action = Object.values(keyMap)
+      .find(v => v.el === btn.id);
+
+    if (!action) return;
+
+    btn.classList.add('active');
+    sendCmd(action.cmd, action.val);
+  }
+
+  function release(e) {
+    e.preventDefault();
+
+    const action = Object.values(keyMap)
+      .find(v => v.el === btn.id);
+
+    btn.classList.remove('active');
+
+    if (!action) return;
+
+    if (action.cmd === 'movement')
+      sendCmd('movement', 'STOP');
+
+    if (action.cmd === 'actuator')
+      sendCmd('actuator', 'STOP');
+  }
+
+  btn.addEventListener('mousedown', press);
+  btn.addEventListener('mouseup', release);
+  btn.addEventListener('mouseleave', release);
+
+  btn.addEventListener('touchstart', press);
+  btn.addEventListener('touchend', release);
+});
 // ═══════════ BOOT ═══════════
 slog('AgriBot Dashboard v3.0 — Firebase Edition','g');
 slog('Project: smart-agri-bot-89ea1 · Region: asia-southeast1','g');
