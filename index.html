@@ -93,9 +93,17 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}
 .divline{height:1px;background:var(--border);margin:6px 0}
 /* MANUAL KEYS */
-.keygrid{display:grid;grid-template-columns:repeat(3,38px);gap:4px;justify-content:center}
-  .actuator-grid{
-    row-gap:4px;
+.keygrid{
+  display:grid;
+  grid-template-columns:repeat(3,38px);
+  gap:2px;
+  justify-content:center;
+}
+
+.actuator-grid{
+  grid-template-rows:38px 38px;
+  row-gap:2px;
+  margin-bottom:0 !important;
 }
 .kkey{height:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:5px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:var(--mono);font-size:11px;font-weight:700;transition:all .1s;cursor:pointer;user-select:none;gap:1px;}
 .kkey span.kletter{font-size:13px;font-weight:700}
@@ -300,12 +308,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
     <span class="kletter">↑</span>
     <span class="khint">ACT UP</span>
   </div>
+<div>
+  
+</div>
 
-  <div class="kkey blank"></div>
-
-  <div class="kkey blank"></div>
-
-  <div class="kkey act-key" id="k-dn">
+<div class="kkey act-key" id="k-dn">
+  
     <span class="kletter">↓</span>
     <span class="khint">ACT DN</span>
   </div>
