@@ -196,7 +196,25 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
       </div>
     </div>
   </div>
-
+<div class="card fix">
+    <div class="chdr">
+      <div class="ctitle">Pump Control</div>
+      <span class="tag tn" id="pump-ctrl-tag">STANDBY</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <div class="kkey pump-key" id="k-p" style="flex:1;height:50px;border-radius:5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;">
+        <span class="kletter" style="font-size:16px;">P</span>
+        <span class="khint">PUMP ON</span>
+      </div>
+      <div class="kkey pump-key" id="k-o" style="flex:1;height:50px;border-radius:5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;">
+        <span class="kletter" style="font-size:16px;">O</span>
+        <span class="khint">PUMP OFF</span>
+      </div>
+    </div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:6px;text-align:center;">
+      KEY P = ON &nbsp;·&nbsp; KEY O = OFF
+    </div>
+  </div>
   <!-- CENTER COL — UNCHANGED -->
   <div class="col">
     <div class="card" style="flex:0 0 230px">
@@ -314,13 +332,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
   <div class="kkey blank"></div>
 </div>
-        <div class="divline"></div>
-        <!-- PUMP keys P = on, O = off -->
-        <div class="klabel">PUMP — P on · O off</div>
-        <div style="display:flex;gap:6px;justify-content:center">
-          <div class="kkey pump-key" id="k-p" style="width:80px;height:34px"><span class="kletter">P</span><span class="khint">PUMP ON</span></div>
-          <div class="kkey pump-key" id="k-o" style="width:80px;height:34px"><span class="kletter">O</span><span class="khint">PUMP OFF</span></div>
-        </div>
+        
       </div>
     </div>
 
