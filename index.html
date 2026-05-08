@@ -121,21 +121,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 .ssendbtn{background:var(--g4);border:1px solid var(--g3);border-radius:4px;color:var(--g);font-family:var(--mono);font-size:10px;padding:5px 12px;cursor:pointer}
 .fbbar{display:flex;align-items:center;gap:8px;padding:4px 10px;background:var(--g4);border:1px solid var(--g3);border-radius:4px;font-family:var(--mono);font-size:9px;color:var(--g);}
 #radar{display:block;width:100%}
-@media(max-width:900px){
-
-  .main{
-    grid-template-columns:1fr;
-    overflow-y:auto;
-  }
-
-  body{
-    overflow:auto;
-  }
-
-  .app{
-    height:auto;
-  }
-}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -329,8 +315,16 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
   <div class="kkey blank"></div>
 </div>
-      <div class="divline"></div>
-    </div>    
+        <div class="divline"></div>
+        <!-- PUMP keys P = on, O = off -->
+        <div class="klabel">PUMP — P on · O off</div>
+        <div style="display:flex;gap:6px;justify-content:center">
+          <div class="kkey pump-key" id="k-p" style="width:80px;height:34px"><span class="kletter">P</span><span class="khint">PUMP ON</span></div>
+          <div class="kkey pump-key" id="k-o" style="width:80px;height:34px"><span class="kletter">O</span><span class="khint">PUMP OFF</span></div>
+        </div>
+      </div>
+    </div>
+
     <!-- FIREBASE FIELDS -->
     <div class="card fix">
       <div class="chdr"><div class="ctitle">Firebase Fields</div><span class="tag tg" id="last-rx">--</span></div>
@@ -357,23 +351,6 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
       </div>
     </div>
 
-<div class="divline"></div>
-
-<div class="klabel">PUMP — P on · O off</div>
-
-<div style="display:flex;gap:6px;justify-content:center">
-  <div class="kkey pump-key" id="k-p" style="width:80px;height:34px">
-    <span class="kletter">P</span>
-    <span class="khint">PUMP ON</span>
-  </div>
-
-  <div class="kkey pump-key" id="k-o" style="width:80px;height:34px">
-    <span class="kletter">O</span>
-    <span class="khint">PUMP OFF</span>
-  </div>
-</div>
-
-</div>
   </div>
 </div>
 
@@ -486,7 +463,7 @@ function updateAll(d) {
   sweepAng=ang;
   radarPts.push({a:ang,d:Math.min(dist,180),t:Date.now()});
   if(radarPts.length>100) radarPts.shift();
-  radarPts = radarPts.slice(-100);
+  radarPts=radarPts.filter(p=>Date.now()-p.t<8000);
   drawRadar();
 
   // Pump
@@ -661,105 +638,24 @@ document.addEventListener('keyup', e => {
 });
 
 // ═══════════ FIREBASE CMD SEND ═══════════
-let lastCmdTime = 0;
-let lastCmd = '';
-
 function sendCmd(c,v){
-
-  const now = Date.now();
-
-  const payload = c + ':' + v;
-
-  if(payload === lastCmd) return;
-
-  lastCmd = payload;
-
-  lastCmdTime = now;
-
-  cmdRef.push({
-    cmd:c,
-    value:v,
-    ts:now
-  })
-  .then(()=> slog('CMD → '+c+'='+v,'a'))
-  .catch(e=> slog('CMD FAIL: '+e.message,'r'));
+  cmdRef.set({cmd:c,value:v,ts:Date.now()})
+    .then(()=> slog('CMD → '+c+'='+v,'a'))
+    .catch(e=> slog('CMD FAIL: '+e.message,'r'));
 }
-  function fbSend(){
 
-  const inp = document.getElementById('sinp');
-
-  const val = inp.value.trim().toUpperCase();
-
+function fbSend(){
+  const inp=document.getElementById('sinp');
+  const val=inp.value.trim().toUpperCase();
   if(!val) return;
-
-  const modeMap = {
-    AUTO:'AUTO',
-    MANUAL:'MANUAL'
-  };
-
-  const driveMap = {
-    FORWARD:'FWD',
-    BACKWARD:'REV',
-    LEFT:'LEFT',
-    RIGHT:'RIGHT',
-    STOP:'STOP'
-  };
-
-  // MODE
-  if(modeMap[val]){
-
-    cmdRef.push({
-      cmd:'mode',
-      value:modeMap[val],
-      ts:Date.now()
-    });
-
-  }
-
-  // MOVEMENT
-  else if(driveMap[val]){
-
-    cmdRef.push({
-      cmd:'movement',
-      value:driveMap[val],
-      ts:Date.now()
-    });
-
-  }
-
-  // PUMP
-  else if(val === 'PUMPON'){
-
-    cmdRef.push({
-      cmd:'pump',
-      value:'true',
-      ts:Date.now()
-    });
-
-  }
-
-  else if(val === 'PUMPOFF'){
-
-    cmdRef.push({
-      cmd:'pump',
-      value:'false',
-      ts:Date.now()
-    });
-
-  }
-
-  else{
-
-    slog('Unknown: '+val,'r');
-
-    return;
-  }
-
+  const modeMap={AUTO:'AUTO',MANUAL:'MANUAL'};
+  const driveMap={FORWARD:'FWD',BACKWARD:'REV',LEFT:'LEFT',RIGHT:'RIGHT',STOP:'STOP'};
+  if(modeMap[val]) cmdRef.set({cmd:'mode',value:val,ts:Date.now()});
+  else if(driveMap[val]) cmdRef.set({cmd:'drive',value:driveMap[val],ts:Date.now()});
+  else { slog('Unknown: '+val,'r'); return; }
   slog('TX: '+val,'a');
-
   inp.value='';
 }
-
 document.getElementById('sinp').addEventListener('keydown',e=>{if(e.key==='Enter')fbSend();});
 
 // ═══════════ CAMERA ═══════════
@@ -771,9 +667,9 @@ function startCam(ip){
   img.style.display='none';
   document.getElementById('cam-ph').style.display='flex';
   img.src='';
-  setTimeout(()=>{ img.src='http://'+ip+':81/stream'; },300);
-  document.getElementById('cam-url-lbl').textContent='http://'+ip+':81/stream';
-  document.getElementById('cam-stream-url').textContent='http://'+ip+':81/stream';
+  setTimeout(()=>{ img.src='http://'+ip+'/stream?t='+Date.now(); },300);
+  document.getElementById('cam-url-lbl').textContent='http://'+ip+'/stream';
+  document.getElementById('cam-stream-url').textContent='http://'+ip+'/stream';
   img.onload=()=>{
     document.getElementById('cam-ph').style.display='none';
     img.style.display='block';
@@ -781,9 +677,9 @@ function startCam(ip){
     document.getElementById('cam-tag').className='tag tg';
     document.getElementById('cam-tag').textContent='LIVE';
     document.getElementById('cam-status-txt').textContent='STREAMING';
-    slog('Camera connected → http://'+ip+':81/stream','g');
+    slog('Camera connected → http://'+ip+'/stream','g');
   };
-  img.onerror = () => {    document.getElementById('cam-tag').className='tag tr';   document.getElementById('cam-tag').textContent='OFFLINE';    document.getElementById('cam-led').className='led r';    clearTimeout(retry);    retry = setTimeout(()=>startCam(ip),3000);  };
+  img.onerror=()=>{ clearTimeout(retry); retry=setTimeout(()=>startCam(ip),3000); };
 }
 function applyCamIP(){
   const ip=document.getElementById('esp-ip-input').value.trim();
@@ -908,30 +804,6 @@ document.querySelectorAll('.kkey').forEach(btn => {
   btn.addEventListener('touchstart', press);
   btn.addEventListener('touchend', release);
 });
-  // CAMERA AUTO RECONNECT
-setInterval(() => {
-
-  if(camStarted && espIP){
-
-    const img = document.getElementById('cam-img');
-
-    fetch('http://' + espIP + '/', {mode:'no-cors'})
-      .catch(() => {
-
-        img.src = '';
-
-        setTimeout(() => {
-          img.src = 'http://' + espIP + ':81/stream';
-        }, 1000);
-
-        slog('Camera reconnecting…','a');
-
-      });
-  }
-
-}, 8000);
-
-}, 5000);
 // ═══════════ BOOT ═══════════
 slog('AgriBot Dashboard v3.0 — Firebase Edition','g');
 slog('Project: smart-agri-bot-89ea1 · Region: asia-southeast1','g');
@@ -941,4 +813,3 @@ slog('Keyboard: W/A/S/D=drive · ↑↓=actuator · P=pump on · O=pump off (MAN
 </script>
 </body>
 </html>
-
