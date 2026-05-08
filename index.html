@@ -91,9 +91,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 /* MANUAL KEYS */
 .keygrid{display:grid;grid-template-columns:repeat(3,38px);gap:4px;justify-content:center}
   .actuator-grid{
-    row-gap:10px;
+    row-gap:4px;
 }
-.kkey{height:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:5px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:var(--mono);font-size:11px;font-weight:700;transition:all .1s;cursor:pointer;user-select:none;gap:1px;}
+.kkey{height:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:5px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:var(--mono);font-size:11px;font-weight:700;transition:all .1s;cursor:pointer;user-select:none;gap:1px;}
 .kkey span.kletter{font-size:13px;font-weight:700}
 .kkey span.khint{font-size:7px;color:var(--text3);letter-spacing:.03em}
 .kkey:empty,.kkey.blank{background:transparent;border:none;pointer-events:none}
@@ -277,7 +277,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
       </div>
 
       <!-- MANUAL PANEL -->
-      <div id="manual-panel" style="display:none">
+      <div id="manual-panel" style="display:none;transform:scale(.88);transform-origin:top center;">
         <!-- DRIVE keys W A S D -->
         <div class="klabel">DRIVE — hold key to move</div>
         <div class="keygrid" style="margin-bottom:6px">
