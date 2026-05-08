@@ -415,11 +415,13 @@ body::before{
     <div class="card">
       <div class="chdr">
         <div class="ctitle">Controls</div>
-        <span class="tag ta">READ-ONLY</span>
+        <span class="tag ta" id="ctrl-tag">AUTO MODE</span>
       </div>
       <div class="mode-row">
-        <button class="mbtn active" id="btn-auto">AUTO</button>
-        <button class="mbtn" id="btn-manual">MANUAL</button>
+    <button class="mbtn active" id="btn-auto"
+  onclick="sendCmd('mode','AUTO')">AUTO</button>
+<button class="mbtn" id="btn-manual"
+  onclick="sendCmd('mode','MANUAL')">MANUAL</button>
       </div>
 
       <!-- Manual panel -->
@@ -680,6 +682,10 @@ radarPts = radarPts.filter(p => Date.now()-p.t < 8000);
   document.getElementById('mode-disp').textContent = mode;
   document.getElementById('mode-mini').textContent = mode;
   document.getElementById('raw-mode').textContent = mode;
+  document.getElementById('ctrl-tag').textContent =
+  mode === 'MANUAL' ? 'MANUAL ACTIVE' : 'AUTO MODE';
+document.getElementById('ctrl-tag').className =
+  'tag ' + (mode === 'MANUAL' ? 'tg' : 'ta');
 
   // ── Watering ──
   const water = d.wateringNeeded === true || d.wateringNeeded === 'true' || d.wateringNeeded === 1;
@@ -766,6 +772,7 @@ function startCam(ip) {
   if (!ip) return;
 
   camStarted = true;
+  let camRetry = null;
 
   const img = document.getElementById('cam-img');
 
@@ -796,16 +803,6 @@ function startCam(ip) {
     slog('Camera connected → http://' + ip + '/stream', 'g');
   };
 
-let camRetry = null;
-
-function retryCam(ip){
-  clearTimeout(camRetry);
-  camRetry = setTimeout(()=>{
-    const img=document.getElementById('cam-img');
-    img.src='http://'+ip+'/stream?t='+Date.now();
-  },3000);
-}
-
 img.onerror = () => {
   clearTimeout(camRetry);
   camRetry = setTimeout(() => startCam(ip), 3000);
@@ -831,11 +828,20 @@ function sendCmd(c, v) {
 
 function fbSend() {
   const inp = document.getElementById('sinp');
-  const val = inp.value.trim();
+  const val = inp.value.trim().toUpperCase();
   if (!val) return;
-  cmdRef.set({raw: val, ts: Date.now()})
-    .then(()=> slog('TX: '+val, 'a'))
-    .catch(e=> slog('Write error: '+e.message, 'r'));
+  // Map known single-word commands
+  const modeMap = {AUTO:'AUTO', MANUAL:'MANUAL'};
+  const driveMap = {FORWARD:'FWD',BACKWARD:'REV',LEFT:'LEFT',RIGHT:'RIGHT',STOP:'STOP'};
+  if (modeMap[val]) {
+    cmdRef.set({cmd:'mode', value:val, ts:Date.now()});
+  } else if (driveMap[val]) {
+    cmdRef.set({cmd:'drive', value:driveMap[val], ts:Date.now()});
+  } else {
+    slog('Unknown command: '+val, 'r');
+    return;
+  }
+  slog('TX: '+val, 'a');
   inp.value = '';
 }
 document.getElementById('sinp').addEventListener('keydown', e => { if(e.key==='Enter') fbSend(); });
