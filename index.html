@@ -4,512 +4,346 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AGRIBOT HUD v2.0</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
-
-<!-- Firebase SDK -->
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-
-:root {
-  --bg:       #030d12;
-  --panel:    #050f16;
-  --border:   #00f5ff33;
-  --border2:  #00f5ff88;
-  --cyan:     #00f5ff;
-  --cyan2:    #00c8d4;
-  --green:    #00ff88;
-  --red:      #ff2244;
-  --yellow:   #ffcc00;
-  --amber:    #ff8800;
-  --text:     #a8dde8;
-  --dim:      #3a7a8a;
-  --glow:     0 0 8px #00f5ff88, 0 0 20px #00f5ff33;
-  --glow-g:   0 0 8px #00ff8888;
-  --glow-r:   0 0 8px #ff224488;
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#030d12;--panel:#050f16;--bdr:#00f5ff22;--bdr2:#00f5ff66;
+  --cyan:#00f5ff;--c2:#00c8d4;--green:#00ff88;--red:#ff2244;
+  --amber:#ff8800;--yellow:#ffcc00;--text:#7ab8c8;--dim:#2a5a6a;
+  --glow:0 0 8px #00f5ff66,0 0 20px #00f5ff22;
+  --glow-g:0 0 8px #00ff8866;--glow-r:0 0 8px #ff224466;
 }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Share Tech Mono', monospace;
-  min-height: 100vh;
-  overflow-x: hidden;
+html,body{height:100%;overflow:hidden;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Share Tech Mono',monospace;
   background-image:
-    linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
+    linear-gradient(rgba(0,245,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,245,255,0.025) 1px,transparent 1px);
+  background-size:40px 40px;
+  display:flex;flex-direction:column;
 }
-
-/* ── SCANLINE overlay ── */
-body::after {
-  content:'';
-  position:fixed; inset:0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,0,0,0.08) 2px,
-    rgba(0,0,0,0.08) 4px
-  );
-  pointer-events:none;
-  z-index:999;
+body::after{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);
+  pointer-events:none;z-index:999;
 }
 
 /* ── HEADER ── */
-header {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:10px 20px;
-  border-bottom:1px solid var(--border2);
-  background: linear-gradient(90deg, #020b11, #040f18, #020b11);
+header{
+  flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  padding:6px 16px;border-bottom:1px solid var(--bdr2);
+  background:linear-gradient(90deg,#020b11,#040f18,#020b11);
   position:relative;
 }
-header::after {
-  content:'';
-  position:absolute; bottom:0; left:0; right:0; height:1px;
-  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-  box-shadow: var(--glow);
+header::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
 }
-.hud-title {
-  font-family: 'Orbitron', sans-serif;
-  font-size:1.4rem; font-weight:900;
-  color: var(--cyan);
-  text-shadow: var(--glow);
-  letter-spacing:4px;
+.hud-title{
+  font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;
+  color:var(--cyan);text-shadow:var(--glow);letter-spacing:4px;
+  animation:flicker 8s infinite;
 }
-.hud-title span { color: var(--green); }
-.header-status {
-  display:flex; gap:16px; align-items:center;
-}
-.status-dot {
-  display:flex; align-items:center; gap:6px;
-  font-size:0.7rem; letter-spacing:1px; color:var(--dim);
-}
-.dot {
-  width:8px; height:8px; border-radius:50%;
-  background: var(--red); box-shadow: var(--glow-r);
-  animation: blink 1.2s infinite;
-}
-.dot.on { background:var(--green); box-shadow:var(--glow-g); animation:none; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
-
-.clock {
-  font-family:'Orbitron',sans-serif;
-  font-size:0.85rem; color:var(--cyan);
-  letter-spacing:2px;
-}
+.hud-title span{color:var(--green);}
+@keyframes flicker{0%,97%,100%{opacity:1}98%,99%{opacity:.8}}
+.header-status{display:flex;gap:11px;align-items:center;}
+.status-dot{display:flex;align-items:center;gap:4px;font-size:0.6rem;letter-spacing:1px;color:var(--dim);}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--red);box-shadow:var(--glow-r);animation:blink 1.2s infinite;}
+.dot.on{background:var(--green);box-shadow:var(--glow-g);animation:none;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+.clock{font-family:'Orbitron',sans-serif;font-size:0.75rem;color:var(--cyan);letter-spacing:2px;}
 
 /* ── MAIN GRID ── */
-.grid {
-  display:grid;
-  grid-template-columns: 280px 1fr 280px;
-  grid-template-rows: auto auto;
-  gap:10px;
-  padding:10px;
-  min-height: calc(100vh - 56px);
+.grid{
+  flex:1;min-height:0;
+  display:grid;grid-template-columns:165px 1fr 192px;
+  gap:6px;padding:6px;overflow:hidden;
 }
+.left-col,.right-col{display:flex;flex-direction:column;gap:5px;min-height:0;overflow:hidden;}
+.center-col{display:flex;flex-direction:column;gap:5px;min-height:0;}
 
-/* ── PANEL BASE ── */
-.panel {
-  background: var(--panel);
-  border:1px solid var(--border);
-  border-radius:4px;
-  position:relative;
-  overflow:hidden;
+/* ── PANELS ── */
+.panel{
+  background:var(--panel);border:1px solid var(--bdr);
+  border-radius:3px;position:relative;overflow:hidden;flex-shrink:0;
 }
-.panel::before {
-  content:'';
-  position:absolute; top:0; left:0; right:0; height:1px;
-  background:linear-gradient(90deg, transparent, var(--cyan2), transparent);
-  opacity:0.5;
+.panel::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--c2),transparent);opacity:0.4;
 }
-.panel-title {
-  font-family:'Orbitron',sans-serif;
-  font-size:0.6rem; letter-spacing:3px;
-  color:var(--cyan2);
-  padding:8px 12px 4px;
-  border-bottom:1px solid var(--border);
-  display:flex; align-items:center; gap:6px;
+.corner{position:absolute;width:8px;height:8px;border-color:var(--c2);border-style:solid;opacity:0.5;}
+.corner.tl{top:3px;left:3px;border-width:1px 0 0 1px;}
+.corner.tr{top:3px;right:3px;border-width:1px 1px 0 0;}
+.corner.bl{bottom:3px;left:3px;border-width:0 0 1px 1px;}
+.corner.br{bottom:3px;right:3px;border-width:0 1px 1px 0;}
+.panel-title{
+  font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;
+  color:var(--c2);padding:4px 8px 3px;border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;gap:4px;
 }
-.panel-title::before {
-  content:'▶';
-  font-size:0.5rem;
-  color:var(--green);
-}
+.panel-title::before{content:'▶';font-size:0.38rem;color:var(--green);}
 
-/* ── LEFT COLUMN ── */
-.left-col { grid-column:1; grid-row:1/3; display:flex; flex-direction:column; gap:10px; }
+/* ── IP / FIREBASE ── */
+.ip-body{padding:5px 8px;display:flex;flex-direction:column;gap:3px;}
+.ip-row{display:flex;gap:4px;align-items:center;}
+.ip-row input{
+  flex:1;background:#020c12;border:1px solid var(--bdr);color:var(--cyan);
+  font-family:inherit;font-size:0.58rem;padding:3px 5px;outline:none;border-radius:2px;
+}
+.ip-row input:focus{border-color:var(--cyan);}
+.ip-row button{
+  background:transparent;border:1px solid var(--c2);color:var(--c2);
+  font-family:inherit;font-size:0.45rem;padding:3px 6px;cursor:pointer;
+  border-radius:2px;transition:all .2s;letter-spacing:1px;
+}
+.ip-row button:hover{background:var(--c2);color:#000;}
+.ip-info{font-size:0.44rem;color:var(--dim);display:flex;gap:4px;flex-wrap:wrap;}
+.ip-badge{background:#020c12;border:1px solid var(--bdr);border-radius:2px;padding:1px 4px;color:var(--text);}
+.fb-body{padding:5px 8px;display:flex;flex-direction:column;gap:3px;}
+.fb-field{display:flex;align-items:center;gap:4px;}
+.fb-field label{font-size:0.42rem;color:var(--dim);letter-spacing:1px;flex:0 0 44px;}
+.fb-field input{
+  flex:1;background:#020c12;border:1px solid var(--bdr);color:var(--cyan);
+  font-family:inherit;font-size:0.5rem;padding:2px 5px;outline:none;border-radius:2px;
+}
+.fb-field input:focus{border-color:var(--cyan);}
+.fb-connect-btn{
+  background:transparent;border:1px solid var(--green);color:var(--green);
+  font-family:'Orbitron',sans-serif;font-size:0.44rem;letter-spacing:2px;
+  padding:4px;cursor:pointer;border-radius:2px;transition:all .2s;width:100%;margin-top:2px;
+}
+.fb-connect-btn:hover{background:var(--green);color:#000;}
 
-/* ── CENTER ── */
-.center-col { grid-column:2; grid-row:1/3; display:flex; flex-direction:column; gap:10px; }
+/* ── SENSORS ── */
+.sensor-grid{padding:4px 8px;display:flex;flex-direction:column;gap:3px;}
+.s-row{display:flex;align-items:center;gap:4px;}
+.s-label{font-size:0.47rem;color:var(--dim);letter-spacing:1px;flex:0 0 54px;}
+.s-bar{flex:1;height:3px;background:#020c12;border:1px solid var(--bdr);border-radius:1px;overflow:hidden;}
+.s-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--c2),var(--cyan));transition:width .6s;}
+.s-fill.warn{background:linear-gradient(90deg,var(--amber),var(--yellow));}
+.s-fill.danger{background:linear-gradient(90deg,var(--red),#ff6688);}
+.s-val{font-size:0.58rem;color:var(--cyan);flex:0 0 36px;text-align:right;}
 
-/* ── RIGHT COLUMN ── */
-.right-col { grid-column:3; grid-row:1/3; display:flex; flex-direction:column; gap:10px; }
+/* ── SYSTEM STATUS ── */
+.status-grid{padding:4px 8px;display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.st-item{background:#020c12;border:1px solid var(--bdr);border-radius:2px;padding:3px 5px;}
+.st-label{font-size:0.4rem;color:var(--dim);letter-spacing:1px;}
+.st-val{font-size:0.68rem;font-family:'Orbitron',sans-serif;font-weight:700;}
+.st-val.cyan{color:var(--cyan);}.st-val.green{color:var(--green);}
+.st-val.red{color:var(--red);}.st-val.amber{color:var(--amber);}
+
+/* ── RUNNING MODELS ── */
+.models-row{display:flex;flex-wrap:wrap;gap:3px;padding:4px 8px;}
+.model-badge{
+  background:#020c12;border:1px solid var(--bdr);border-radius:10px;
+  padding:1px 5px;font-size:0.4rem;letter-spacing:1px;color:var(--dim);
+  display:flex;align-items:center;gap:2px;
+}
+.model-badge.active{border-color:var(--c2);color:var(--c2);}
+.model-badge .mbdot{width:3px;height:3px;border-radius:50%;background:var(--dim);}
+.model-badge.active .mbdot{background:var(--cyan);}
+
+/* ── SERIAL MONITOR LOG ── */
+.log-panel{flex:1;min-height:0;display:flex;flex-direction:column;}
+.log-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:4px 8px 3px;border-bottom:1px solid var(--bdr);background:#020c12;
+}
+.log-header-title{
+  font-family:'Orbitron',sans-serif;font-size:0.48rem;color:var(--c2);
+  letter-spacing:2px;display:flex;align-items:center;gap:3px;
+}
+.log-header-title::before{content:'▶';font-size:0.36rem;color:var(--green);}
+.log-db{font-size:0.42rem;color:var(--amber);letter-spacing:1px;}
+.log-body{
+  flex:1;padding:2px 0;overflow-y:auto;display:flex;flex-direction:column;
+  background:#020c12;
+  scrollbar-width:thin;scrollbar-color:var(--bdr2) transparent;
+}
+.log-body::-webkit-scrollbar{width:2px;}
+.log-body::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px;}
+.log-line{
+  display:flex;gap:0;font-size:0.52rem;line-height:1.55;
+  font-family:'Share Tech Mono',monospace;padding:0 8px;
+}
+.log-line:hover{background:#0a1f18;}
+.log-time{color:#2a6a4a;flex:0 0 56px;}
+.log-type{flex:0 0 38px;}
+.log-type.fb{color:var(--amber);}
+.log-type.cmd{color:var(--cyan);}
+.log-type.sys{color:var(--green);}
+.log-type.err{color:var(--red);}
+.log-type.kb{color:#aa88ff;}
+.log-msg{color:#88ccaa;flex:1;word-break:break-all;}
+.log-msg .hl{color:var(--cyan);}
+.log-msg .hlg{color:var(--green);}
+.log-msg .hlr{color:var(--red);}
+.log-msg .hla{color:var(--amber);}
+.log-input-row{
+  display:flex;align-items:center;gap:0;
+  border-top:1px solid var(--bdr);background:#020c12;padding:3px 8px;
+}
+.log-prompt{font-size:0.5rem;color:var(--green);flex-shrink:0;}
+.log-text-inp{
+  flex:1;background:transparent;border:none;color:var(--cyan);
+  font-family:'Share Tech Mono',monospace;font-size:0.5rem;outline:none;padding:0 4px;
+}
+.log-send-btn{
+  background:transparent;border:1px solid var(--bdr2);color:var(--c2);
+  font-family:'Share Tech Mono',monospace;font-size:0.45rem;padding:2px 6px;
+  cursor:pointer;border-radius:2px;transition:all .2s;
+}
+.log-send-btn:hover{background:var(--bdr2);color:#000;}
 
 /* ── CAMERA ── */
-.cam-panel { flex:0 0 auto; }
-.cam-wrap {
-  position:relative;
-  background:#000;
-  aspect-ratio:4/3;
-  display:flex; align-items:center; justify-content:center;
-  overflow:hidden;
+.cam-panel{flex:0 0 auto;}
+.cam-wrap{
+  position:relative;background:#000;height:128px;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
-.cam-wrap img {
-  width:100%; height:100%; object-fit:cover;
-  image-rendering: auto;
+.cam-wrap img{width:100%;height:100%;object-fit:cover;}
+.cam-overlay{position:absolute;inset:0;pointer-events:none;border:1px solid var(--c2);opacity:0.3;}
+.cam-overlay::before{content:'';position:absolute;top:5px;left:5px;right:5px;bottom:5px;border:1px solid rgba(0,245,255,0.15);}
+.no-stream{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--dim);font-size:0.55rem;letter-spacing:2px;}
+.cam-label{position:absolute;bottom:3px;left:6px;font-size:0.44rem;color:var(--cyan);letter-spacing:2px;opacity:0.6;}
+.cam-rec{position:absolute;top:4px;right:5px;font-size:0.44rem;color:var(--red);display:flex;align-items:center;gap:2px;}
+.rec-dot{width:4px;height:4px;border-radius:50%;background:var(--red);animation:blink .8s infinite;}
+.cam-url-row{display:flex;gap:4px;padding:4px 8px;border-top:1px solid var(--bdr);}
+.cam-url-row input{
+  flex:1;background:#020c12;border:1px solid var(--bdr2);color:var(--cyan);
+  font-family:inherit;font-size:0.5rem;padding:2px 5px;outline:none;border-radius:2px;
 }
-.cam-overlay {
-  position:absolute; inset:0; pointer-events:none;
-  border: 1px solid var(--cyan2);
+.cam-url-row input:focus{border-color:var(--cyan);}
+.cam-url-row button{
+  background:transparent;border:1px solid var(--c2);color:var(--cyan);
+  font-family:'Orbitron',sans-serif;font-size:0.4rem;padding:2px 6px;
+  cursor:pointer;letter-spacing:1px;transition:all .2s;
 }
-.cam-overlay::before, .cam-overlay::after {
-  content:'';
-  position:absolute;
-  border: 1px solid var(--cyan);
-  opacity:0.5;
-}
-.cam-overlay::before {
-  top:10px; left:10px; right:10px; bottom:10px;
-}
-.cam-overlay::after {
-  top:50%; left:50%;
-  width:20px; height:20px;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-}
-.cam-crosshair {
-  position:absolute; inset:0;
-  display:flex; align-items:center; justify-content:center;
-  pointer-events:none;
-}
-.cam-crosshair::before {
-  content:'';
-  position:absolute;
-  width:1px; height:40%; background:var(--cyan); opacity:0.3;
-}
-.cam-crosshair::after {
-  content:'';
-  position:absolute;
-  height:1px; width:40%; background:var(--cyan); opacity:0.3;
-}
-.cam-label {
-  position:absolute; bottom:6px; left:8px;
-  font-size:0.55rem; color:var(--cyan); letter-spacing:2px;
-  opacity:0.7;
-}
-.cam-rec {
-  position:absolute; top:8px; right:8px;
-  font-size:0.55rem; color:var(--red); letter-spacing:2px;
-  display:flex; align-items:center; gap:4px;
-}
-.rec-dot { width:6px; height:6px; border-radius:50%; background:var(--red); animation:blink 0.8s infinite; }
-.no-stream {
-  display:flex; flex-direction:column; align-items:center; gap:8px;
-  color:var(--dim); font-size:0.65rem; letter-spacing:2px;
-}
-.no-stream svg { opacity:0.3; }
-
-.cam-url-row {
-  display:flex; gap:6px; padding:8px 10px;
-  border-top:1px solid var(--border);
-}
-.cam-url-row input {
-  flex:1;
-  background:#020c12; border:1px solid var(--border2);
-  color:var(--cyan); font-family:inherit; font-size:0.65rem;
-  padding:5px 8px; outline:none; border-radius:2px;
-}
-.cam-url-row input:focus { border-color:var(--cyan); box-shadow:var(--glow); }
-.cam-url-row button {
-  background: transparent; border:1px solid var(--cyan2);
-  color:var(--cyan); font-family:'Orbitron',sans-serif;
-  font-size:0.5rem; padding:5px 10px; cursor:pointer;
-  letter-spacing:1px; transition:all 0.2s;
-}
-.cam-url-row button:hover { background:var(--cyan2); color:#000; }
+.cam-url-row button:hover{background:var(--c2);color:#000;}
 
 /* ── RADAR ── */
-.radar-panel { flex:1; min-height:0; }
-.radar-wrap {
-  display:flex; align-items:center; justify-content:center;
-  padding:10px 0;
+.radar-panel{flex:1;min-height:0;display:flex;flex-direction:column;}
+.radar-inner{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:4px;}
+#radarCanvas{display:block;max-width:100%;max-height:100%;}
+.radar-readings{
+  flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;
+  padding:4px 8px 6px;border-top:1px solid var(--bdr);
 }
-#radarCanvas {
-  border-radius:50%;
-  display:block;
-}
-.radar-readings {
-  display:grid; grid-template-columns:1fr 1fr 1fr;
-  gap:4px; padding:6px 10px 10px;
-  border-top:1px solid var(--border);
-}
-.r-box {
-  text-align:center;
-  background:#020c12; border:1px solid var(--border);
-  border-radius:2px; padding:5px 4px;
-}
-.r-label { font-size:0.5rem; color:var(--dim); letter-spacing:2px; }
-.r-val { font-size:1rem; color:var(--cyan); font-family:'Orbitron',sans-serif; font-weight:700; }
-.r-unit { font-size:0.45rem; color:var(--dim); }
+.r-box{text-align:center;background:#020c12;border:1px solid var(--bdr);border-radius:2px;padding:3px;}
+.r-label{font-size:0.42rem;color:var(--dim);letter-spacing:2px;}
+.r-val{font-size:0.9rem;color:var(--cyan);font-family:'Orbitron',sans-serif;font-weight:700;}
+.r-unit{font-size:0.37rem;color:var(--dim);}
 
-/* ── SENSOR PANEL ── */
-.sensor-panel { flex:0 0 auto; }
-.sensor-grid { padding:8px 10px; display:flex; flex-direction:column; gap:6px; }
+/* ── CONTROL PANEL ── */
+.ctrl-panel{flex:0 0 auto;}
+.ctrl-body{padding:0 8px 7px;display:flex;flex-direction:column;gap:4px;}
+.mode-row{display:flex;gap:4px;padding:5px 8px;}
+.mode-btn{
+  flex:1;padding:5px 0;background:transparent;border:1px solid var(--bdr2);
+  color:var(--dim);font-family:'Orbitron',sans-serif;font-size:0.5rem;
+  letter-spacing:1px;cursor:pointer;transition:all .2s;border-radius:2px;
+}
+.mode-btn.active-auto{background:var(--green);border-color:var(--green);color:#000;box-shadow:var(--glow-g);}
+.mode-btn.active-manual{background:var(--cyan);border-color:var(--cyan);color:#000;box-shadow:var(--glow);}
+.mode-btn:hover:not(.active-auto):not(.active-manual){border-color:var(--c2);color:var(--c2);}
+.head-banner{font-size:0.42rem;letter-spacing:2px;text-align:center;padding:3px;border-radius:2px;}
 
-.s-row {
-  display:flex; align-items:center; justify-content:space-between;
-  gap:8px;
-}
-.s-label { font-size:0.6rem; color:var(--dim); letter-spacing:2px; flex:0 0 110px; }
-.s-bar {
-  flex:1; height:6px; background:#020c12;
-  border:1px solid var(--border); border-radius:1px; overflow:hidden;
-}
-.s-fill {
-  height:100%; width:0%;
-  background:linear-gradient(90deg, var(--cyan2), var(--cyan));
-  box-shadow:var(--glow); transition:width 0.6s ease;
-}
-.s-fill.warn { background:linear-gradient(90deg, var(--amber), var(--yellow)); }
-.s-fill.danger { background:linear-gradient(90deg, var(--red), #ff6688); }
-.s-val { font-size:0.7rem; color:var(--cyan); flex:0 0 44px; text-align:right; }
+/* AUTO PANEL */
+#autoPanel{display:flex;flex-direction:column;gap:4px;}
+.auto-stats{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.auto-card{background:#020c12;border:1px solid var(--bdr);border-radius:2px;padding:3px 6px;}
+.auto-card-label{font-size:0.37rem;color:var(--dim);letter-spacing:2px;}
+.auto-card-val{font-size:0.82rem;font-family:'Orbitron',sans-serif;font-weight:700;}
+.obs-bar-wrap{background:#020c12;border:1px solid var(--bdr);border-radius:2px;padding:4px 7px;}
+.obs-bar-label{font-size:0.37rem;color:var(--dim);letter-spacing:2px;margin-bottom:3px;}
+.obs-bar-row{display:flex;gap:3px;align-items:center;}
+.obs-seg{flex:1;height:6px;border-radius:1px;background:#010810;border:1px solid var(--bdr);overflow:hidden;}
+.obs-seg-fill{height:100%;width:0%;transition:width .5s;}
+.obs-fill-l{background:linear-gradient(90deg,#ff2244,#ff8800);}
+.obs-fill-c{background:linear-gradient(90deg,#ff8800,#ffcc00);}
+.obs-fill-r{background:linear-gradient(90deg,#ffcc00,#00ff88);}
+.obs-dir{font-size:0.38rem;color:var(--dim);letter-spacing:1px;width:12px;text-align:center;}
+.auto-pills{display:flex;gap:3px;}
+.auto-pill{flex:1;background:#020c12;border:1px solid var(--bdr);border-radius:2px;padding:3px;text-align:center;}
+.auto-pill-label{font-size:0.35rem;color:var(--dim);letter-spacing:1px;}
+.auto-pill-val{font-size:0.62rem;font-family:'Orbitron',sans-serif;font-weight:700;}
+.decision-box{background:#020c12;border:1px solid var(--bdr2);border-radius:2px;padding:4px 7px;display:flex;align-items:center;gap:6px;}
+.decision-label{font-size:0.37rem;color:var(--dim);letter-spacing:2px;flex-shrink:0;}
+.decision-val{font-size:0.65rem;font-family:'Orbitron',sans-serif;color:var(--cyan);letter-spacing:1px;}
 
-/* ── STATUS PANEL ── */
-.status-panel { flex:0 0 auto; }
-.status-grid { padding:8px 10px; display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-.st-item {
-  background:#020c12; border:1px solid var(--border);
-  border-radius:2px; padding:6px 8px;
-  display:flex; flex-direction:column; gap:2px;
+/* MANUAL PANEL */
+#manualPanel{display:flex;flex-direction:column;gap:5px;}
+.drive-section{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.drive-label{font-size:0.38rem;color:var(--dim);letter-spacing:3px;}
+.drive-grid{display:grid;grid-template-areas:'. w .' 'a s d';gap:3px;}
+.key-btn{
+  width:42px;height:42px;background:#020c12;border:1px solid var(--bdr2);
+  color:var(--cyan);font-family:'Orbitron',sans-serif;font-size:0.8rem;font-weight:700;
+  cursor:pointer;border-radius:3px;transition:all .1s;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1px;
 }
-.st-label { font-size:0.5rem; color:var(--dim); letter-spacing:2px; }
-.st-val { font-size:0.85rem; font-family:'Orbitron',sans-serif; font-weight:700; }
-.st-val.cyan { color:var(--cyan); }
-.st-val.green { color:var(--green); }
-.st-val.red { color:var(--red); }
-.st-val.yellow { color:var(--yellow); }
-.st-val.amber { color:var(--amber); }
+.key-btn .key-sub{font-size:0.33rem;color:var(--dim);letter-spacing:1px;}
+.key-btn:hover{border-color:var(--cyan);box-shadow:var(--glow);}
+.key-btn.pressed{background:var(--cyan);color:#000;border-color:var(--cyan);}
+.key-btn.pressed .key-sub{color:#003344;}
+.key-w{grid-area:w;}.key-a{grid-area:a;}.key-s{grid-area:s;}.key-d{grid-area:d;}
+.stop-btn{
+  width:100%;padding:5px 0;background:transparent;border:1px solid var(--red);
+  color:var(--red);font-family:'Orbitron',sans-serif;font-size:0.47rem;
+  letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s;
+}
+.stop-btn:hover{background:var(--red);color:#000;}
+.arrow-section{display:flex;justify-content:space-around;align-items:flex-start;}
+.arrow-group{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.arrow-label{font-size:0.38rem;color:var(--dim);letter-spacing:2px;}
+.arr-btn{
+  width:36px;height:36px;background:#020c12;border:1px solid #ff880033;
+  color:var(--amber);font-family:inherit;font-size:0.9rem;cursor:pointer;
+  border-radius:3px;transition:all .1s;display:flex;align-items:center;justify-content:center;
+}
+.arr-btn.pump-btn{color:var(--green);border-color:#00ff8822;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:1px;}
+.arr-btn:hover{border-color:var(--amber);box-shadow:0 0 6px #ff880055;}
+.arr-btn.pump-btn:hover{border-color:var(--green);box-shadow:var(--glow-g);}
+.arr-btn.pressed{background:var(--amber);color:#000;}
+.arr-btn.pump-btn.pressed{background:var(--green);color:#000;}
+.pump-indicator{display:flex;align-items:center;gap:4px;font-size:0.48rem;letter-spacing:1px;color:var(--dim);}
+.pump-dot{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:var(--glow-r);transition:all .3s;}
+.pump-dot.on{background:var(--green);box-shadow:var(--glow-g);}
 
-/* ── CONTROLS PANEL ── */
-.ctrl-panel { flex:1; }
-.ctrl-body { padding:10px; display:flex; flex-direction:column; gap:10px; }
+/* ── FIREBASE FIELDS ── */
+.fb-fields-body{padding:4px 8px;display:flex;flex-direction:column;gap:2px;}
+.fb-field-row{display:flex;justify-content:space-between;align-items:center;}
+.fb-field-key{font-size:0.48rem;color:var(--dim);}
+.fb-field-val{font-size:0.48rem;color:var(--text);}
 
-/* Mode Toggle */
-.mode-row {
-  display:flex; gap:6px; justify-content:center;
+/* ── ESP32 CAMERA SECTION ── */
+.esp-body{padding:4px 8px;display:flex;flex-direction:column;gap:3px;}
+.esp-ip{font-family:'Orbitron',sans-serif;font-size:0.65rem;color:var(--cyan);}
+.esp-sub{font-size:0.44rem;color:var(--dim);}
+.esp-set-btn{
+  width:100%;padding:3px;background:transparent;border:1px solid var(--bdr2);
+  color:var(--c2);font-family:'Orbitron',sans-serif;font-size:0.42rem;
+  letter-spacing:1px;cursor:pointer;border-radius:2px;transition:all .2s;
 }
-.mode-btn {
-  flex:1; padding:8px 0;
-  background:transparent; border:1px solid var(--border2);
-  color:var(--dim); font-family:'Orbitron',sans-serif;
-  font-size:0.6rem; letter-spacing:2px; cursor:pointer;
-  transition:all 0.2s; border-radius:2px;
-}
-.mode-btn.active-auto { background:var(--green); border-color:var(--green); color:#000; box-shadow:var(--glow-g); }
-.mode-btn.active-manual { background:var(--cyan); border-color:var(--cyan); color:#000; box-shadow:var(--glow); }
-.mode-btn:hover:not(.active-auto):not(.active-manual) { border-color:var(--cyan2); color:var(--cyan2); }
+.esp-set-btn:hover{background:var(--bdr2);color:#000;}
+.cam-active{font-size:0.4rem;color:var(--green);letter-spacing:2px;}
 
-/* WASD Drive Grid */
-.drive-section { display:flex; flex-direction:column; align-items:center; gap:4px; }
-.drive-label { font-size:0.5rem; color:var(--dim); letter-spacing:3px; }
-.drive-grid {
-  display:grid;
-  grid-template-areas:
-    ". w ."
-    "a s d";
-  gap:5px;
-}
-.key-btn {
-  width:54px; height:54px;
-  background:#020c12; border:1px solid var(--border2);
-  color:var(--cyan); font-family:'Orbitron',sans-serif;
-  font-size:0.9rem; font-weight:700; cursor:pointer;
-  border-radius:3px; transition:all 0.1s;
-  display:flex; align-items:center; justify-content:center;
-  flex-direction:column; gap:2px; position:relative;
-  overflow:hidden;
-}
-.key-btn .key-sub { font-size:0.4rem; color:var(--dim); letter-spacing:1px; }
-.key-btn:hover { border-color:var(--cyan); box-shadow:var(--glow); }
-.key-btn.pressed {
-  background:var(--cyan); color:#000; border-color:var(--cyan);
-  box-shadow:var(--glow);
-}
-.key-btn.pressed .key-sub { color:#003344; }
-.key-w { grid-area:w; }
-.key-a { grid-area:a; }
-.key-s { grid-area:s; }
-.key-d { grid-area:d; }
-
-/* Arrow keys for actuator/pump */
-.arrow-section { display:flex; justify-content:space-around; align-items:flex-start; }
-.arrow-group { display:flex; flex-direction:column; align-items:center; gap:4px; }
-.arrow-label { font-size:0.5rem; color:var(--dim); letter-spacing:2px; }
-.arrow-grid-v { display:flex; flex-direction:column; gap:4px; align-items:center; }
-.arrow-grid-h { display:flex; gap:4px; }
-.arr-btn {
-  width:44px; height:44px;
-  background:#020c12; border:1px solid var(--border2);
-  color:var(--amber); font-family:inherit;
-  font-size:1.1rem; cursor:pointer;
-  border-radius:3px; transition:all 0.1s;
-  display:flex; align-items:center; justify-content:center;
-}
-.arr-btn.pump-btn { color:var(--green); border-color:var(--green-dim, #00ff8833); }
-.arr-btn.pump-btn:hover { border-color:var(--green); box-shadow:var(--glow-g); }
-.arr-btn:hover { border-color:var(--amber); box-shadow:0 0 8px #ff880066; }
-.arr-btn.pressed { background:var(--amber); color:#000; box-shadow:0 0 12px #ff8800aa; }
-.arr-btn.pump-btn.pressed { background:var(--green); color:#000; box-shadow:var(--glow-g); }
-
-/* Pump quick status */
-.pump-row {
-  display:flex; align-items:center; justify-content:center; gap:10px;
-  padding:4px 0;
-}
-.pump-indicator {
-  display:flex; align-items:center; gap:6px;
-  font-size:0.6rem; letter-spacing:2px; color:var(--dim);
-}
-.pump-dot {
-  width:10px; height:10px; border-radius:50%;
-  background:var(--red); box-shadow:var(--glow-r);
-  transition:all 0.3s;
-}
-.pump-dot.on { background:var(--green); box-shadow:var(--glow-g); }
-
-/* ── SERIAL MONITOR ── */
-.serial-panel { flex:1; min-height:0; }
-.serial-body {
-  padding:8px 10px;
-  height:180px;
-  overflow-y:auto;
-  display:flex; flex-direction:column; gap:2px;
-  scrollbar-width:thin; scrollbar-color:var(--border) transparent;
-}
-.serial-body::-webkit-scrollbar { width:4px; }
-.serial-body::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
-.log-line {
-  font-size:0.6rem; line-height:1.6;
-  display:flex; gap:8px; align-items:flex-start;
-}
-.log-time { color:var(--dim); flex:0 0 60px; }
-.log-type { flex:0 0 50px; }
-.log-type.fb { color:var(--amber); }
-.log-type.cmd { color:var(--cyan); }
-.log-type.sys { color:var(--green); }
-.log-type.err { color:var(--red); }
-.log-msg { color:var(--text); flex:1; word-break:break-all; }
-
-/* ── FIREBASE CONFIG ── */
-.fb-panel { flex:0 0 auto; }
-.fb-body { padding:8px 10px; display:flex; flex-direction:column; gap:6px; }
-.fb-field {
-  display:flex; align-items:center; gap:6px;
-}
-.fb-field label { font-size:0.5rem; color:var(--dim); letter-spacing:1px; flex:0 0 80px; }
-.fb-field input {
-  flex:1; background:#020c12; border:1px solid var(--border);
-  color:var(--cyan); font-family:inherit; font-size:0.6rem;
-  padding:4px 8px; outline:none; border-radius:2px;
-}
-.fb-field input:focus { border-color:var(--cyan); }
-.fb-connect-btn {
-  background:transparent; border:1px solid var(--green);
-  color:var(--green); font-family:'Orbitron',sans-serif;
-  font-size:0.55rem; letter-spacing:2px; padding:7px;
-  cursor:pointer; border-radius:2px; transition:all 0.2s;
-  width:100%;
-}
-.fb-connect-btn:hover { background:var(--green); color:#000; box-shadow:var(--glow-g); }
-
-/* ── IP PANEL ── */
-.ip-panel { flex:0 0 auto; }
-.ip-body { padding:8px 10px; display:flex; flex-direction:column; gap:6px; }
-.ip-row { display:flex; gap:6px; align-items:center; }
-.ip-row input {
-  flex:1; background:#020c12; border:1px solid var(--border);
-  color:var(--cyan); font-family:inherit; font-size:0.7rem;
-  padding:5px 8px; outline:none; border-radius:2px;
-}
-.ip-row input:focus { border-color:var(--cyan); }
-.ip-row button {
-  background:transparent; border:1px solid var(--cyan2);
-  color:var(--cyan2); font-family:inherit; font-size:0.55rem;
-  padding:5px 10px; cursor:pointer; border-radius:2px; transition:all 0.2s;
-  letter-spacing:1px;
-}
-.ip-row button:hover { background:var(--cyan2); color:#000; }
-.ip-info {
-  font-size:0.55rem; color:var(--dim); letter-spacing:1px;
-  display:flex; gap:8px; flex-wrap:wrap;
-}
-.ip-badge {
-  background:#020c12; border:1px solid var(--border);
-  border-radius:2px; padding:2px 6px;
-  color:var(--text);
-}
-
-/* ── RESPONSIVE ── */
-@media (max-width: 1100px) {
-  .grid {
-    grid-template-columns: 240px 1fr 240px;
-  }
-}
-@media (max-width: 850px) {
-  .grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
-  }
-  .left-col, .center-col, .right-col {
-    grid-column: 1; grid-row: auto;
-  }
-}
-
-/* Decorative corner brackets */
-.corner {
-  position:absolute;
-  width:12px; height:12px;
-  border-color:var(--cyan2);
-  border-style:solid;
-  opacity:0.7;
-}
-.corner.tl { top:4px; left:4px; border-width:1px 0 0 1px; }
-.corner.tr { top:4px; right:4px; border-width:1px 1px 0 0; }
-.corner.bl { bottom:4px; left:4px; border-width:0 0 1px 1px; }
-.corner.br { bottom:4px; right:4px; border-width:0 1px 1px 0; }
-
-/* Flicker animation for HUD feel */
-@keyframes flicker {
-  0%,98%,100%{opacity:1} 99%{opacity:0.85}
-}
-.hud-title { animation: flicker 6s infinite; }
-
-/* Running models badge */
-.models-row {
-  display:flex; flex-wrap:wrap; gap:4px; padding:8px 10px;
-}
-.model-badge {
-  background:#020c12; border:1px solid var(--border);
-  border-radius:12px; padding:3px 10px;
-  font-size:0.5rem; letter-spacing:2px; color:var(--dim);
-  display:flex; align-items:center; gap:4px;
-}
-.model-badge.active { border-color:var(--cyan2); color:var(--cyan2); }
-.model-badge .mbdot {
-  width:5px; height:5px; border-radius:50%; background:var(--dim);
-}
-.model-badge.active .mbdot { background:var(--cyan); box-shadow:var(--glow); }
+/* ── SYSTEM METRICS ── */
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:4px 8px 5px;}
+.metric-card{background:#020c12;border:1px solid var(--bdr);border-radius:2px;padding:3px 5px;}
+.metric-lbl{font-size:0.38rem;color:var(--dim);letter-spacing:1px;}
+.metric-val{font-family:'Orbitron',sans-serif;font-size:0.78rem;font-weight:700;}
 </style>
 </head>
-
 <body>
 
-<!-- HEADER -->
+<!-- ══ HEADER ══ -->
 <header>
-  <div class="hud-title">AGRI<span>BOT</span> HUD <span style="font-size:0.6rem;color:var(--dim)">v2.0</span></div>
+  <div class="hud-title">AGRI<span>BOT</span> HUD <span style="font-size:0.5rem;color:var(--dim)">v2.0</span></div>
   <div class="header-status">
     <div class="status-dot"><div class="dot" id="dotWifi"></div>WIFI</div>
     <div class="status-dot"><div class="dot" id="dotFb"></div>FIREBASE</div>
@@ -519,19 +353,20 @@ header::after {
   <div class="clock" id="clockEl">--:--:--</div>
 </header>
 
-<!-- MAIN GRID -->
+<!-- ══ MAIN GRID ══ -->
 <div class="grid">
 
-  <!-- ══════════════ LEFT COLUMN ══════════════ -->
+  <!-- ════ LEFT COLUMN ════ -->
   <div class="left-col">
 
-    <!-- IP / Connection -->
-    <div class="panel ip-panel">
-      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+    <!-- CONNECTION IP -->
+    <div class="panel">
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
       <div class="panel-title">CONNECTION · IP</div>
       <div class="ip-body">
         <div class="ip-row">
-          <input id="ipInput" type="text" placeholder="192.168.x.x" value="">
+          <input id="ipInput" type="text" placeholder="192.168.x.x">
           <button onclick="setIP()">SET</button>
         </div>
         <div class="ip-info">
@@ -541,9 +376,10 @@ header::after {
       </div>
     </div>
 
-    <!-- Firebase Config -->
-    <div class="panel fb-panel">
-      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+    <!-- FIREBASE CONFIG -->
+    <div class="panel">
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
       <div class="panel-title">FIREBASE CONFIG</div>
       <div class="fb-body">
         <div class="fb-field">
@@ -558,86 +394,38 @@ header::after {
       </div>
     </div>
 
-    <!-- Sensor Readings -->
-    <div class="panel sensor-panel">
-      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+    <!-- SENSOR DATA -->
+    <div class="panel">
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
       <div class="panel-title">SENSOR DATA</div>
       <div class="sensor-grid">
-
-        <div class="s-row">
-          <div class="s-label">MOISTURE</div>
-          <div class="s-bar"><div class="s-fill" id="moistureBar"></div></div>
-          <div class="s-val" id="moistureVal">0%</div>
-        </div>
-
-        <div class="s-row">
-          <div class="s-label">DISTANCE ↑</div>
-          <div class="s-bar"><div class="s-fill" id="distBar"></div></div>
-          <div class="s-val" id="distVal">0cm</div>
-        </div>
-
-        <div class="s-row">
-          <div class="s-label">LEFT</div>
-          <div class="s-bar"><div class="s-fill" id="leftBar"></div></div>
-          <div class="s-val" id="leftVal">0cm</div>
-        </div>
-
-        <div class="s-row">
-          <div class="s-label">CENTER</div>
-          <div class="s-bar"><div class="s-fill" id="centerBar"></div></div>
-          <div class="s-val" id="centerVal">0cm</div>
-        </div>
-
-        <div class="s-row">
-          <div class="s-label">RIGHT</div>
-          <div class="s-bar"><div class="s-fill" id="rightBar"></div></div>
-          <div class="s-val" id="rightVal">0cm</div>
-        </div>
-
-        <div class="s-row">
-          <div class="s-label">SERVO °</div>
-          <div class="s-bar"><div class="s-fill" id="servoBar"></div></div>
-          <div class="s-val" id="servoVal">90°</div>
-        </div>
-
+        <div class="s-row"><div class="s-label">MOISTURE</div><div class="s-bar"><div class="s-fill" id="moistureBar"></div></div><div class="s-val" id="moistureVal">0%</div></div>
+        <div class="s-row"><div class="s-label">DISTANCE</div><div class="s-bar"><div class="s-fill" id="distBar"></div></div><div class="s-val" id="distVal">0cm</div></div>
+        <div class="s-row"><div class="s-label">LEFT</div><div class="s-bar"><div class="s-fill" id="leftBar"></div></div><div class="s-val" id="leftVal">0cm</div></div>
+        <div class="s-row"><div class="s-label">CENTER</div><div class="s-bar"><div class="s-fill" id="centerBar"></div></div><div class="s-val" id="centerVal">0cm</div></div>
+        <div class="s-row"><div class="s-label">RIGHT</div><div class="s-bar"><div class="s-fill" id="rightBar"></div></div><div class="s-val" id="rightVal">0cm</div></div>
+        <div class="s-row"><div class="s-label">SERVO °</div><div class="s-bar"><div class="s-fill" id="servoBar"></div></div><div class="s-val" id="servoVal">90°</div></div>
       </div>
     </div>
 
-    <!-- Status Grid -->
-    <div class="panel status-panel">
-      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+    <!-- SYSTEM STATUS -->
+    <div class="panel">
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
       <div class="panel-title">SYSTEM STATUS</div>
       <div class="status-grid">
-        <div class="st-item">
-          <div class="st-label">MODE</div>
-          <div class="st-val cyan" id="stMode">—</div>
-        </div>
-        <div class="st-item">
-          <div class="st-label">MOVEMENT</div>
-          <div class="st-val green" id="stMove">—</div>
-        </div>
-        <div class="st-item">
-          <div class="st-label">PUMP</div>
-          <div class="st-val red" id="stPump">OFF</div>
-        </div>
-        <div class="st-item">
-          <div class="st-label">ACTUATOR</div>
-          <div class="st-val amber" id="stActuator">—</div>
-        </div>
-        <div class="st-item">
-          <div class="st-label">WATERING</div>
-          <div class="st-val" id="stWater" style="color:var(--dim)">—</div>
-        </div>
-        <div class="st-item">
-          <div class="st-label">UPTIME</div>
-          <div class="st-val cyan" id="stUptime">0s</div>
-        </div>
+        <div class="st-item"><div class="st-label">MODE</div><div class="st-val cyan" id="stMode">AUTO</div></div>
+        <div class="st-item"><div class="st-label">MOVEMENT</div><div class="st-val green" id="stMove">—</div></div>
+        <div class="st-item"><div class="st-label">PUMP</div><div class="st-val red" id="stPump">OFF</div></div>
+        <div class="st-item"><div class="st-label">UPTIME</div><div class="st-val cyan" id="stUptime">00:00:00</div></div>
       </div>
     </div>
 
-    <!-- Running Models -->
+    <!-- RUNNING MODELS -->
     <div class="panel">
-      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
       <div class="panel-title">RUNNING MODELS</div>
       <div class="models-row">
         <div class="model-badge active"><div class="mbdot"></div>OBSTACLE-AVOID</div>
@@ -649,636 +437,673 @@ header::after {
       </div>
     </div>
 
+    <!-- FIREBASE EVENT LOG (Serial Monitor style) -->
+    <div class="panel log-panel">
+      <div class="log-header">
+        <div class="log-header-title">FIREBASE EVENT LOG</div>
+        <div class="log-db">smart-agri-bot · asia-southeast1</div>
+      </div>
+      <div class="log-body" id="serialBody"></div>
+      <div class="log-input-row">
+        <span class="log-prompt">▶ Write to /agribot/cmd —</span>
+        <input class="log-text-inp" id="logInput" placeholder="type command...">
+        <button class="log-send-btn" onclick="sendManualCmd()">SEND</button>
+      </div>
+    </div>
+
   </div><!-- /left-col -->
 
-  <!-- ══════════════ CENTER COLUMN ══════════════ -->
+  <!-- ════ CENTER COLUMN ════ -->
   <div class="center-col">
 
-    <!-- Camera -->
+    <!-- LIVE CAMERA FEED -->
     <div class="panel cam-panel">
-      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
       <div class="panel-title">LIVE FEED · ESP32-CAM</div>
       <div class="cam-wrap" id="camWrap">
         <div class="no-stream" id="noStream">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-            <rect x="2" y="7" width="15" height="10" rx="1"/><polygon points="17 9 22 7 22 17 17 15"/>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <rect x="2" y="7" width="15" height="10" rx="1"/>
+            <polygon points="17 9 22 7 22 17 17 15"/>
             <line x1="1" y1="1" x2="23" y2="23"/>
           </svg>
           NO STREAM · SET IP ABOVE
         </div>
         <img id="camImg" src="" style="display:none" onload="camLoaded()" onerror="camFailed()">
         <div class="cam-overlay"></div>
-        <div class="cam-crosshair"></div>
         <div class="cam-label">CH01 · AGRIBOT · MJPEG</div>
         <div class="cam-rec"><div class="rec-dot"></div>LIVE</div>
       </div>
       <div class="cam-url-row">
-        <input id="streamUrl" type="text" placeholder="http://192.168.x.x/stream or /jpg">
+        <input id="streamUrl" type="text" placeholder="http://192.168.x.x/stream">
         <button onclick="loadStream()">▶ STREAM</button>
         <button onclick="loadSnap()" style="border-color:var(--amber);color:var(--amber)">📷 SNAP</button>
       </div>
     </div>
 
-    <!-- Radar -->
+    <!-- RADAR -->
     <div class="panel radar-panel">
-      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
       <div class="panel-title">RADAR · SERVO + ULTRASONIC</div>
-      <div class="radar-wrap">
-        <canvas id="radarCanvas" width="280" height="180"></canvas>
+      <div class="radar-inner">
+        <canvas id="radarCanvas"></canvas>
       </div>
       <div class="radar-readings">
-        <div class="r-box">
-          <div class="r-label">LEFT</div>
-          <div class="r-val" id="rLeft">—</div>
-          <div class="r-unit">CM</div>
-        </div>
-        <div class="r-box">
-          <div class="r-label">CENTER</div>
-          <div class="r-val" id="rCenter">—</div>
-          <div class="r-unit">CM</div>
-        </div>
-        <div class="r-box">
-          <div class="r-label">RIGHT</div>
-          <div class="r-val" id="rRight">—</div>
-          <div class="r-unit">CM</div>
-        </div>
+        <div class="r-box"><div class="r-label">LEFT</div><div class="r-val" id="rLeft">—</div><div class="r-unit">CM</div></div>
+        <div class="r-box"><div class="r-label">CENTER</div><div class="r-val" id="rCenter">—</div><div class="r-unit">CM</div></div>
+        <div class="r-box"><div class="r-label">RIGHT</div><div class="r-val" id="rRight">—</div><div class="r-unit">CM</div></div>
       </div>
     </div>
 
   </div><!-- /center-col -->
 
-  <!-- ══════════════ RIGHT COLUMN ══════════════ -->
+  <!-- ════ RIGHT COLUMN ════ -->
   <div class="right-col">
 
-    <!-- Controls -->
+    <!-- CONTROL PANEL -->
     <div class="panel ctrl-panel">
-      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
-      <div class="panel-title">CONTROL · AUTO / MANUAL</div>
-      <div class="ctrl-body">
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
+      <div class="panel-title">CONTROL · <span id="modeLabel" style="color:var(--green)">AUTO MODE</span></div>
+      <div class="mode-row">
+        <button class="mode-btn active-auto" id="btnAuto" onclick="setMode('AUTO')">⬡ AUTO</button>
+        <button class="mode-btn" id="btnManual" onclick="setMode('MANUAL')">⬡ MANUAL</button>
+      </div>
 
-        <!-- Mode -->
-        <div class="mode-row">
-          <button class="mode-btn active-auto" id="btnAuto" onclick="setMode('AUTO')">⬡ AUTO</button>
-          <button class="mode-btn" id="btnManual" onclick="setMode('MANUAL')">⬡ MANUAL</button>
+      <!-- AUTO PANEL -->
+      <div id="autoPanel" class="ctrl-body">
+        <div class="head-banner" style="color:var(--green);border:1px solid #00ff8820;background:#00ff8806;">
+          ▸ AUTONOMOUS OPERATION ACTIVE ◂
         </div>
-
-        <!-- WASD Drive -->
-        <div class="drive-section">
-          <div class="drive-label">DRIVE · WASD</div>
-          <div class="drive-grid">
-            <button class="key-btn key-w" id="btnW" onclick="sendDrive('FWD')">W<div class="key-sub">FORWARD</div></button>
-            <button class="key-btn key-a" id="btnA" onclick="sendDrive('LEFT')">A<div class="key-sub">LEFT</div></button>
-            <button class="key-btn key-s" id="btnS" onclick="sendDrive('REV')">S<div class="key-sub">BACK</div></button>
-            <button class="key-btn key-d" id="btnD" onclick="sendDrive('RIGHT')">D<div class="key-sub">RIGHT</div></button>
+        <div class="auto-stats">
+          <div class="auto-card">
+            <div class="auto-card-label">NAVIGATION</div>
+            <div class="auto-card-val" id="autoNavStatus" style="color:var(--green)">SCANNING</div>
           </div>
-          <button onclick="sendDrive('STOP')" style="
-            margin-top:4px; width:100%; padding:7px;
-            background:transparent; border:1px solid var(--red);
-            color:var(--red); font-family:'Orbitron',sans-serif;
-            font-size:0.55rem; letter-spacing:3px; cursor:pointer;
-            border-radius:2px; transition:all 0.2s;
-          " onmouseenter="this.style.background='var(--red)';this.style.color='#000'"
-             onmouseleave="this.style.background='transparent';this.style.color='var(--red)'">
-            ■ STOP
-          </button>
+          <div class="auto-card">
+            <div class="auto-card-label">MOISTURE</div>
+            <div class="auto-card-val" id="autoMoisture" style="color:var(--cyan)">—</div>
+          </div>
+          <div class="auto-card">
+            <div class="auto-card-label">PUMP STATE</div>
+            <div class="auto-card-val" id="autoPumpState" style="color:var(--red)">OFF</div>
+          </div>
+          <div class="auto-card">
+            <div class="auto-card-label">WATERING</div>
+            <div class="auto-card-val" id="autoWater" style="color:var(--dim)">—</div>
+          </div>
         </div>
+        <div class="obs-bar-wrap">
+          <div class="obs-bar-label">OBSTACLE PROXIMITY (closer = higher)</div>
+          <div class="obs-bar-row">
+            <div class="obs-dir">L</div>
+            <div class="obs-seg"><div class="obs-seg-fill obs-fill-l" id="obsLeft"></div></div>
+            <div class="obs-dir">C</div>
+            <div class="obs-seg"><div class="obs-seg-fill obs-fill-c" id="obsCenter"></div></div>
+            <div class="obs-dir">R</div>
+            <div class="obs-seg"><div class="obs-seg-fill obs-fill-r" id="obsRight"></div></div>
+          </div>
+        </div>
+        <div class="auto-pills">
+          <div class="auto-pill">
+            <div class="auto-pill-label">SERVO</div>
+            <div class="auto-pill-val" style="color:var(--amber)" id="autoServo">90°</div>
+          </div>
+          <div class="auto-pill">
+            <div class="auto-pill-label">SPEED</div>
+            <div class="auto-pill-val" style="color:var(--cyan)" id="autoSpeed">MED</div>
+          </div>
+          <div class="auto-pill">
+            <div class="auto-pill-label">WAYPOINTS</div>
+            <div class="auto-pill-val" style="color:var(--cyan)" id="autoWaypts">—</div>
+          </div>
+        </div>
+        <div class="decision-box">
+          <div class="decision-label">DECISION</div>
+          <div class="decision-val" id="autoDecision">INITIALIZING...</div>
+        </div>
+      </div>
 
-        <!-- Actuator + Pump -->
+      <!-- MANUAL PANEL -->
+      <div id="manualPanel" class="ctrl-body" style="display:none;">
+        <div class="head-banner" style="color:var(--cyan);border:1px solid #00f5ff20;background:#00f5ff06;">
+          ▸ MANUAL CONTROL ACTIVE ◂
+        </div>
+        <div class="drive-section">
+          <div class="drive-label">DRIVE · W/A/S/D</div>
+          <div class="drive-grid">
+            <button class="key-btn key-w" id="btnW" onclick="sendDrive('FWD')">W<span class="key-sub">FWD</span></button>
+            <button class="key-btn key-a" id="btnA" onclick="sendDrive('LEFT')">A<span class="key-sub">LEFT</span></button>
+            <button class="key-btn key-s" id="btnS" onclick="sendDrive('REV')">S<span class="key-sub">REV</span></button>
+            <button class="key-btn key-d" id="btnD" onclick="sendDrive('RIGHT')">D<span class="key-sub">RIGHT</span></button>
+          </div>
+          <button class="stop-btn" onclick="sendDrive('STOP')">■ STOP</button>
+        </div>
         <div class="arrow-section">
           <div class="arrow-group">
             <div class="arrow-label">ACTUATOR</div>
-            <div class="arrow-grid-v">
-              <button class="arr-btn" id="btnActUp" onclick="sendActuator('UP')">▲</button>
-              <button class="arr-btn" id="btnActDn" onclick="sendActuator('DOWN')">▼</button>
-            </div>
+            <button class="arr-btn" id="btnActUp" onclick="sendActuator('UP')">↑</button>
+            <button class="arr-btn" id="btnActDn" onclick="sendActuator('DOWN')">↓</button>
           </div>
           <div class="arrow-group">
             <div class="arrow-label">PUMP</div>
-            <div class="arrow-grid-h">
-              <button class="arr-btn pump-btn" id="btnPumpOn" onclick="sendPump(true)" title="LEFT ARROW = PUMP ON">◀ ON</button>
-              <button class="arr-btn pump-btn" id="btnPumpOff" onclick="sendPump(false)" title="RIGHT ARROW = PUMP OFF">OFF ▶</button>
-            </div>
+            <button class="arr-btn pump-btn" id="btnPumpOn" onclick="sendPump(true)">ON</button>
+            <button class="arr-btn pump-btn" id="btnPumpOff" onclick="sendPump(false)">OFF</button>
             <div class="pump-indicator">
               <div class="pump-dot" id="pumpDot"></div>
-              PUMP <span id="pumpTxt">OFF</span>
+              <span id="pumpLabel">PUMP OFF</span>
             </div>
           </div>
         </div>
+      </div>
+    </div><!-- /ctrl-panel -->
 
+    <!-- FIREBASE FIELDS -->
+    <div class="panel">
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
+      <div class="panel-title">FIREBASE FIELDS</div>
+      <div class="fb-fields-body">
+        <div class="fb-field-row"><span class="fb-field-key">movement</span><span class="fb-field-val" id="fbMove">STOP</span></div>
+        <div class="fb-field-row"><span class="fb-field-key">actuator</span><span class="fb-field-val" id="fbActuator">—</span></div>
+        <div class="fb-field-row"><span class="fb-field-key">pump</span><span class="fb-field-val" id="fbPump">false</span></div>
+        <div class="fb-field-row"><span class="fb-field-key">wateringNeeded</span><span class="fb-field-val" id="fbWater">false</span></div>
+        <div class="fb-field-row"><span class="fb-field-key">mode</span><span class="fb-field-val" id="fbModeVal" style="color:var(--cyan)">AUTO</span></div>
+        <div class="fb-field-row"><span class="fb-field-key">ip</span><span class="fb-field-val" id="fbIp" style="color:var(--cyan)">—</span></div>
       </div>
     </div>
 
-    <!-- Serial Monitor -->
-    <div class="panel serial-panel">
-      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
-      <div class="panel-title">SERIAL MONITOR</div>
-      <div class="serial-body" id="serialLog"></div>
+    <!-- ESP32 CAMERA -->
+    <div class="panel">
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
+      <div class="panel-title">ESP32 CAMERA</div>
+      <div class="esp-body">
+        <div class="esp-ip" id="espIp">—</div>
+        <div class="esp-sub">Stream: /stream &nbsp;·&nbsp; Snap: /jpg</div>
+        <button class="esp-set-btn" onclick="applyEspCam()">SET CAM</button>
+        <div class="cam-active" id="camActiveLabel">● CAM STREAM INACTIVE</div>
+      </div>
+    </div>
+
+    <!-- SYSTEM METRICS -->
+    <div class="panel">
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
+      <div class="panel-title">SYSTEM METRICS</div>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-lbl">BATTERY</div>
+          <div class="metric-val" id="mBattery" style="color:var(--green)">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-lbl">WIFI SIGNAL</div>
+          <div class="metric-val" id="mWifi" style="color:var(--amber)">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-lbl">BOT TEMP</div>
+          <div class="metric-val" id="mTemp" style="color:var(--amber)">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-lbl">RUNTIME</div>
+          <div class="metric-val" id="mRuntime" style="color:var(--cyan)">00:00</div>
+        </div>
+      </div>
     </div>
 
   </div><!-- /right-col -->
 
 </div><!-- /grid -->
 
+<!-- ══════════════ JAVASCRIPT ══════════════ -->
 <script>
-// ═══════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════
-let db = null;
-let botIP = '';
-let startTime = Date.now();
-let currentMode = 'AUTO';
-let lastData = {};
-let camMode = 'stream'; // 'stream' | 'snap'
-let snapInterval = null;
+// ── GLOBALS ──
+let db = null, botIP = '', currentMode = 'AUTO';
+let lastData = {}, radarHistory = [], snapInterval = null, camMode = '';
+const MAX_DIST = 400, startTime = Date.now();
 
-// Radar trail history
-let radarHistory = []; // { angle, dist }[]
-const MAX_TRAIL = 60;
-const MAX_DIST = 200; // cm max display
-
-// ═══════════════════════════════════════════════
-//  CLOCK
-// ═══════════════════════════════════════════════
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clockEl').textContent =
-    now.toTimeString().slice(0,8);
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-// Uptime
+// ── CLOCK + UPTIME ──
 setInterval(() => {
-  const s = Math.floor((Date.now() - startTime) / 1000);
-  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), ss = s%60;
+  const n = new Date();
+  document.getElementById('clockEl').textContent =
+    pad(n.getHours()) + ':' + pad(n.getMinutes()) + ':' + pad(n.getSeconds());
+  const up = Math.floor((Date.now() - startTime) / 1000);
   document.getElementById('stUptime').textContent =
-    `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+    pad(Math.floor(up / 3600)) + ':' + pad(Math.floor((up % 3600) / 60)) + ':' + pad(up % 60);
+  document.getElementById('mRuntime').textContent =
+    pad(Math.floor(up / 60)) + ':' + pad(up % 60);
 }, 1000);
+function pad(v) { return String(v).padStart(2, '0'); }
 
-// ═══════════════════════════════════════════════
-//  LOGGING
-// ═══════════════════════════════════════════════
-function log(type, msg) {
-  const el = document.getElementById('serialLog');
-  const now = new Date().toTimeString().slice(0,8);
-  const line = document.createElement('div');
-  line.className = 'log-line';
-  line.innerHTML = `<span class="log-time">${now}</span><span class="log-type ${type}">[${type.toUpperCase()}]</span><span class="log-msg">${msg}</span>`;
-  el.appendChild(line);
-  el.scrollTop = el.scrollHeight;
-  // Keep only last 200
-  while (el.children.length > 200) el.removeChild(el.firstChild);
+// ── SERIAL LOG ──
+function log(type, plain, html) {
+  const body = document.getElementById('serialBody');
+  const n = new Date();
+  const t = '[' + pad(n.getHours()) + ':' + pad(n.getMinutes()) + ':' + pad(n.getSeconds()) + ']';
+  const labels = { sys: '[SYS]', cmd: '[CMD]', fb: '[FB]', err: '[ERR]', kb: '[KB]' };
+  const d = document.createElement('div'); d.className = 'log-line';
+  d.innerHTML =
+    '<span class="log-time">' + t + '</span>' +
+    '<span class="log-type ' + type + '">' + (labels[type] || '[SYS]') + '</span>' +
+    '<span class="log-msg">' + (html || plain) + '</span>';
+  body.appendChild(d); body.scrollTop = body.scrollHeight;
+  if (body.children.length > 200) body.removeChild(body.firstChild);
 }
 
-// ═══════════════════════════════════════════════
-//  IP
-// ═══════════════════════════════════════════════
+function sendManualCmd() {
+  const v = document.getElementById('logInput').value.trim();
+  if (!v) return;
+  log('cmd', v, '→ <span class="hl">' + v + '</span>');
+  document.getElementById('logInput').value = '';
+  if (db) {
+    const parts = v.split('=');
+    if (parts.length === 2) {
+      db.ref('/agribot/cmd').set({ cmd: parts[0].trim(), value: parts[1].trim() })
+        .catch(e => log('err', e.message));
+    }
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('logInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendManualCmd();
+  });
+});
+
+// ── IP ──
 function setIP() {
   botIP = document.getElementById('ipInput').value.trim();
-  if (!botIP) return;
+  if (!botIP) { log('err', 'Enter valid IP'); return; }
   document.getElementById('ipDisplay').textContent = botIP;
-  document.getElementById('streamUrl').value = `http://${botIP}/stream`;
-  log('sys', `IP set → ${botIP}`);
-  setDot('dotBot', true);
+  document.getElementById('streamUrl').value = 'http://' + botIP + '/stream';
+  document.getElementById('espIp').textContent = botIP;
+  document.getElementById('fbIp').textContent = botIP;
+  setDot('dotWifi', true);
+  log('sys', 'Bot IP → <span class="hl">' + botIP + '</span>');
 }
 
-// ═══════════════════════════════════════════════
-//  FIREBASE
-// ═══════════════════════════════════════════════
+// ── FIREBASE ──
 function connectFirebase() {
   const apiKey = document.getElementById('fbApiKey').value.trim();
-  const dbUrl  = document.getElementById('fbDbUrl').value.trim();
-  if (!apiKey || !dbUrl) { log('err','Firebase: missing config'); return; }
-
+  const dbURL = document.getElementById('fbDbUrl').value.trim();
+  if (!apiKey || !dbURL) { log('err', 'Fill API Key and DB URL'); return; }
   try {
-    // Delete existing app if any
-    if (firebase.apps.length) {
-      firebase.app().delete().then(() => initFb(apiKey, dbUrl));
-    } else {
-      initFb(apiKey, dbUrl);
-    }
-  } catch(e) { log('err', e.message); }
-}
+    if (firebase.apps.length) firebase.apps[0].delete();
+    firebase.initializeApp({ apiKey, databaseURL: dbURL });
+    db = firebase.database();
+    setDot('dotFb', true);
+    const proj = dbURL.split('//')[1].split('.')[0];
+    log('fb', 'Firebase RTDB connected · <span class="hla">' + proj + '</span>');
+    log('kb', 'Keyboard: W/A/S/D · ↑↓=Actuator · ←→=pump · <span class="hl">(MANUAL mode only)</span>');
 
-function initFb(apiKey, dbUrl) {
-  firebase.initializeApp({ apiKey, databaseURL: dbUrl });
-  db = firebase.database();
-  log('fb', 'Firebase connected ✓');
-  setDot('dotFb', true);
-  // Listen to /agribot/data
-  db.ref('/agribot/data').on('value', snap => {
-    const d = snap.val();
-    if (!d) return;
-    lastData = d;
-    updateUI(d);
-    log('fb', `RX data · mode=${d.mode} · mvt=${d.movement} · moist=${d.moisture}`);
-  });
-}
-
-// ═══════════════════════════════════════════════
-//  UPDATE UI FROM FIREBASE DATA
-// ═══════════════════════════════════════════════
-function updateUI(d) {
-  // Bars
-  setBar('moistureBar','moistureVal', d.moisture, 100, '%');
-  setBar('distBar','distVal', d.distance, 200, 'cm');
-  setBar('leftBar','leftVal', d.leftDistance, 200, 'cm');
-  setBar('centerBar','centerVal', d.centerDistance, 200, 'cm');
-  setBar('rightBar','rightVal', d.rightDistance, 200, 'cm');
-  setBar('servoBar','servoVal', d.servoAngle, 180, '°', 0);
-
-  // Status
-  setText('stMode', d.mode, d.mode==='AUTO' ? 'cyan' : 'yellow');
-  setText('stMove', d.movement, 'green');
-  setText('stPump', d.pump ? 'ON' : 'OFF', d.pump ? 'green' : 'red');
-  setText('stActuator', d.actuator, 'amber');
-  setText('stWater', d.wateringNeeded ? 'YES' : 'NO', d.wateringNeeded ? 'green' : null);
-
-  // Pump indicator
-  const pd = document.getElementById('pumpDot');
-  const pt = document.getElementById('pumpTxt');
-  pd.className = 'pump-dot' + (d.pump ? ' on' : '');
-  pt.textContent = d.pump ? 'ON' : 'OFF';
-
-  // IP/SSID
-  if (d.ip) {
-    document.getElementById('ipDisplay').textContent = d.ip;
-    document.getElementById('ipInput').value = d.ip;
-    botIP = d.ip;
+    db.ref('/agribot/sensors').on('value', snap => {
+      const d = snap.val() || {};
+      lastData = { ...lastData, ...d };
+      updateSensors(d);
+    });
+    db.ref('/agribot/status').on('value', snap => {
+      const d = snap.val() || {};
+      lastData = { ...lastData, ...d };
+      updateStatus(d);
+    });
+    db.ref('/agribot/metrics').on('value', snap => {
+      const d = snap.val() || {};
+      updateMetrics(d);
+    });
+  } catch (e) {
+    setDot('dotFb', false);
+    log('err', 'Firebase: ' + e.message);
   }
-  if (d.ssid) document.getElementById('ssidDisplay').textContent = 'SSID: '+d.ssid;
+}
 
-  // Radar
-  rLeft.textContent = d.leftDistance ?? '—';
-  rCenter.textContent = d.centerDistance ?? '—';
-  rRight.textContent = d.rightDistance ?? '—';
+// ── SENSOR BAR ──
+function setBar(barId, valId, value, max, unit, warnPct, dangerPct) {
+  const pct = Math.min(100, (value / max) * 100);
+  const fill = document.getElementById(barId);
+  fill.style.width = pct + '%';
+  fill.className = 's-fill' + (pct >= dangerPct ? ' danger' : pct >= warnPct ? ' warn' : '');
+  document.getElementById(valId).textContent = value + (unit || '');
+}
 
-  // Push to radar history
-  const angle = d.servoAngle ?? 90;
-  const dist  = d.centerDistance ?? d.distance ?? 200;
-  radarHistory.push({ angle, dist });
-  if (radarHistory.length > MAX_TRAIL) radarHistory.shift();
+function updateSensors(d) {
+  if (d.moisture != null) {
+    setBar('moistureBar', 'moistureVal', d.moisture, 100, '%', 60, 85);
+    document.getElementById('autoMoisture').textContent = d.moisture + '%';
+    log('fb', 'moisture=<span class="hlg">' + d.moisture + '%</span>');
+  }
+  if (d.distance != null) setBar('distBar', 'distVal', Math.min(d.distance, MAX_DIST), MAX_DIST, 'cm', 70, 90);
+  if (d.left != null) {
+    setBar('leftBar', 'leftVal', Math.min(d.left, MAX_DIST), MAX_DIST, 'cm', 70, 90);
+    document.getElementById('rLeft').textContent = d.left;
+    updateObs('obsLeft', d.left);
+  }
+  if (d.center != null) {
+    setBar('centerBar', 'centerVal', Math.min(d.center, MAX_DIST), MAX_DIST, 'cm', 70, 90);
+    document.getElementById('rCenter').textContent = d.center;
+    updateObs('obsCenter', d.center);
+  }
+  if (d.right != null) {
+    setBar('rightBar', 'rightVal', Math.min(d.right, MAX_DIST), MAX_DIST, 'cm', 70, 90);
+    document.getElementById('rRight').textContent = d.right;
+    updateObs('obsRight', d.right);
+  }
+  if (d.servoAngle != null) {
+    setBar('servoBar', 'servoVal', d.servoAngle, 180, '°', 0, 0);
+    document.getElementById('autoServo').textContent = d.servoAngle + '°';
+    if (d.distance != null) radarHistory.push({ angle: d.servoAngle, dist: d.distance });
+    if (radarHistory.length > 120) radarHistory.shift();
+  }
+  // Composite log line like the screenshot
+  if (d.moisture != null || d.distance != null) {
+    const m = d.moisture ?? lastData.moisture ?? '?';
+    const dist = d.distance ?? lastData.distance ?? '?';
+    const mv = lastData.move ?? 'STOP';
+    const p = lastData.pump ?? 'false';
+    log('fb', 'moisture=<span class="hlg">' + m + '%</span> dist=<span class="hla">' + dist + 'cm</span> move=<span class="hl">' + mv + '</span> pump=<span class="hlr">' + p + '</span>');
+  }
+}
 
-  // Also push left/right
-  if (d.leftDistance)  radarHistory.push({ angle: 150, dist: d.leftDistance });
-  if (d.rightDistance) radarHistory.push({ angle: 30,  dist: d.rightDistance });
-  while (radarHistory.length > MAX_TRAIL) radarHistory.shift();
+function updateObs(id, dist) {
+  const pct = dist < 10 ? 100 : Math.min(100, Math.round((1 - (dist / MAX_DIST)) * 100));
+  document.getElementById(id).style.width = pct + '%';
+}
 
-  // Mode sync
-  if (d.mode && d.mode !== currentMode) setModeUI(d.mode);
-
+function updateStatus(d) {
+  if (d.move != null) {
+    document.getElementById('stMove').textContent = d.move;
+    document.getElementById('autoNavStatus').textContent = d.move;
+    document.getElementById('fbMove').textContent = d.move;
+  }
+  if (d.pump != null) {
+    const on = d.pump === 'true' || d.pump === true;
+    document.getElementById('stPump').textContent = on ? 'ON' : 'OFF';
+    document.getElementById('stPump').className = 'st-val ' + (on ? 'green' : 'red');
+    document.getElementById('autoPumpState').textContent = on ? 'ON' : 'OFF';
+    document.getElementById('autoPumpState').style.color = on ? 'var(--green)' : 'var(--red)';
+    document.getElementById('fbPump').textContent = on ? 'true' : 'false';
+    const pd = document.getElementById('pumpDot');
+    if (pd) { pd.className = 'pump-dot' + (on ? ' on' : ''); document.getElementById('pumpLabel').textContent = 'PUMP ' + (on ? 'ON' : 'OFF'); }
+  }
+  if (d.actuator != null) document.getElementById('fbActuator').textContent = d.actuator;
+  if (d.watering != null) {
+    document.getElementById('autoWater').textContent = d.watering;
+    document.getElementById('fbWater').textContent = d.watering;
+  }
+  if (d.mode != null) setModeUI(d.mode);
+  if (d.decision != null) document.getElementById('autoDecision').textContent = d.decision;
+  if (d.ip != null) {
+    document.getElementById('fbIp').textContent = d.ip;
+    document.getElementById('espIp').textContent = d.ip;
+    log('sys', 'ESP32 IP from Firebase: <span class="hl">' + d.ip + '</span>');
+  }
   setDot('dotBot', true);
 }
 
-function setBar(barId, valId, val, max, unit, min=0) {
-  const pct = Math.min(100, Math.max(0, ((val-min)/(max-min))*100));
-  const bar = document.getElementById(barId);
-  bar.style.width = pct+'%';
-  bar.className = 's-fill' + (pct>80?' danger':pct>60?' warn':'');
-  document.getElementById(valId).textContent = val + unit;
+function updateMetrics(d) {
+  if (d.battery != null) document.getElementById('mBattery').textContent = d.battery + '%';
+  if (d.wifi != null) document.getElementById('mWifi').textContent = d.wifi;
+  if (d.temp != null) document.getElementById('mTemp').textContent = d.temp + '°';
 }
 
-function setText(id, val, cls) {
-  const el = document.getElementById(id);
-  el.textContent = val;
-  el.className = 'st-val' + (cls ? ' '+cls : '');
-}
-
-// ═══════════════════════════════════════════════
-//  CAMERA
-// ═══════════════════════════════════════════════
-function loadStream() {
-  const url = document.getElementById('streamUrl').value.trim();
-  if (!url) { log('err','No stream URL'); return; }
-  stopSnap();
-  camMode = 'stream';
-  const img = document.getElementById('camImg');
-  img.src = url + '?' + Date.now();
-  img.style.display = 'block';
-  document.getElementById('noStream').style.display = 'none';
-  setDot('dotCam', true);
-  log('sys', 'Stream → ' + url);
-}
-
-function loadSnap() {
-  const baseUrl = document.getElementById('streamUrl').value.trim()
-    .replace('/stream','').replace('/cam','') || (botIP ? 'http://'+botIP : '');
-  if (!baseUrl) { log('err','Set IP or stream URL first'); return; }
-  stopSnap();
-  camMode = 'snap';
-  log('sys', 'Snapshot mode → '+baseUrl+'/jpg');
-  function snap() {
-    const img = document.getElementById('camImg');
-    img.src = baseUrl + '/jpg?' + Date.now();
-    img.style.display = 'block';
-    document.getElementById('noStream').style.display = 'none';
-  }
-  snap();
-  snapInterval = setInterval(snap, 500);
-  setDot('dotCam', true);
-}
-
-function stopSnap() {
-  if (snapInterval) { clearInterval(snapInterval); snapInterval = null; }
-}
-
-function camLoaded() { setDot('dotCam', true); }
-function camFailed() {
-  setDot('dotCam', false);
-  // For MJPEG streams that disconnect, retry after 3s
-  if (camMode === 'stream') {
-    setTimeout(loadStream, 3000);
-  }
-  log('err', 'Camera disconnected — retrying...');
-}
-
-// ═══════════════════════════════════════════════
-//  CONTROLS → FIREBASE
-// ═══════════════════════════════════════════════
-function sendCmd(cmd, value) {
-  if (!db) { log('err','Firebase not connected'); return; }
-  db.ref('/agribot/cmd').set({ cmd, value })
-    .then(() => log('cmd', `SEND → cmd=${cmd} val=${value}`))
-    .catch(e => log('err', e.message));
-}
-
+// ── MODE ──
 function setMode(m) {
   currentMode = m;
   setModeUI(m);
   sendCmd('mode', m);
-  log('sys', 'Mode → ' + m);
+  log('sys', 'Mode set → <span class="hl">' + m + '</span>');
 }
 
 function setModeUI(m) {
   currentMode = m;
-  document.getElementById('btnAuto').className   = 'mode-btn' + (m==='AUTO'   ? ' active-auto'   : '');
-  document.getElementById('btnManual').className = 'mode-btn' + (m==='MANUAL' ? ' active-manual' : '');
+  document.getElementById('btnAuto').className = 'mode-btn' + (m === 'AUTO' ? ' active-auto' : '');
+  document.getElementById('btnManual').className = 'mode-btn' + (m === 'MANUAL' ? ' active-manual' : '');
+  const ml = document.getElementById('modeLabel');
+  ml.textContent = m === 'AUTO' ? 'AUTO MODE' : 'MANUAL MODE';
+  ml.style.color = m === 'AUTO' ? 'var(--green)' : 'var(--cyan)';
+  document.getElementById('autoPanel').style.display = m === 'AUTO' ? 'flex' : 'none';
+  document.getElementById('manualPanel').style.display = m === 'MANUAL' ? 'flex' : 'none';
+  document.getElementById('stMode').textContent = m;
+  document.getElementById('fbModeVal').textContent = m;
   const mb = document.getElementById('mbManual');
-  mb.className = 'model-badge' + (m==='MANUAL' ? ' active' : '');
-  mb.querySelector('.mbdot').style.background = m==='MANUAL' ? 'var(--cyan)' : 'var(--dim)';
+  mb.className = 'model-badge' + (m === 'MANUAL' ? ' active' : '');
+  mb.querySelector('.mbdot').style.background = m === 'MANUAL' ? 'var(--cyan)' : 'var(--dim)';
 }
 
+// ── CAMERA ──
+function loadStream() {
+  const url = document.getElementById('streamUrl').value.trim();
+  if (!url) { log('err', 'No stream URL'); return; }
+  stopSnap(); camMode = 'stream';
+  const img = document.getElementById('camImg');
+  img.src = url + '?' + Date.now(); img.style.display = 'block';
+  document.getElementById('noStream').style.display = 'none';
+  setDot('dotCam', true);
+  log('sys', 'Stream → <span class="hl">' + url + '</span>');
+}
+function loadSnap() {
+  const base = (document.getElementById('streamUrl').value.trim().replace('/stream', '').replace('/cam', '')) || (botIP ? 'http://' + botIP : '');
+  if (!base) { log('err', 'Set IP first'); return; }
+  stopSnap(); camMode = 'snap';
+  const snap = () => {
+    const img = document.getElementById('camImg');
+    img.src = base + '/jpg?' + Date.now();
+    img.style.display = 'block';
+    document.getElementById('noStream').style.display = 'none';
+  };
+  snap(); snapInterval = setInterval(snap, 500);
+  setDot('dotCam', true);
+}
+function stopSnap() { if (snapInterval) { clearInterval(snapInterval); snapInterval = null; } }
+function camLoaded() {
+  setDot('dotCam', true);
+  document.getElementById('camActiveLabel').textContent = '● CAM STREAM ACTIVE';
+  document.getElementById('camActiveLabel').style.color = 'var(--green)';
+}
+function camFailed() {
+  setDot('dotCam', false);
+  document.getElementById('camActiveLabel').textContent = '● CAM STREAM INACTIVE';
+  document.getElementById('camActiveLabel').style.color = 'var(--red)';
+  if (camMode === 'stream') setTimeout(loadStream, 3000);
+  log('err', 'Camera disconnected — retrying...');
+}
+function applyEspCam() {
+  const ip = document.getElementById('espIp').textContent;
+  if (ip === '—') { log('err', 'Set IP first'); return; }
+  document.getElementById('streamUrl').value = 'http://' + ip + '/stream';
+  log('sys', 'CAM set to <span class="hl">' + ip + '</span>');
+}
+
+// ── FIREBASE COMMANDS ──
+function sendCmd(cmd, value) {
+  if (!db) { log('err', 'Firebase not connected'); return; }
+  db.ref('/agribot/cmd').set({ cmd, value })
+    .then(() => log('cmd', cmd + '=<span class="hl">' + value + '</span> sent'))
+    .catch(e => log('err', e.message));
+}
 function sendDrive(val) {
-  flashBtn('btn' + {FWD:'W',REV:'S',LEFT:'A',RIGHT:'D',STOP:''}[val]);
+  const map = { FWD: 'W', REV: 'S', LEFT: 'A', RIGHT: 'D', STOP: null };
+  if (map[val]) flashBtn('btn' + map[val]);
   sendCmd('drive', val);
 }
-
 function sendActuator(val) {
   sendCmd('actuator', val);
-  flashEl(val==='UP' ? 'btnActUp' : 'btnActDn', 'pressed');
+  flashEl(val === 'UP' ? 'btnActUp' : 'btnActDn', 'pressed');
+  log('cmd', 'actuator=<span class="hl">' + val + '</span> sent');
 }
-
 function sendPump(on) {
   sendCmd('pump', on ? 'true' : 'false');
   flashEl(on ? 'btnPumpOn' : 'btnPumpOff', 'pressed');
-  log('cmd', 'PUMP → ' + (on ? 'ON' : 'OFF'));
+  const pd = document.getElementById('pumpDot');
+  if (pd) { pd.className = 'pump-dot' + (on ? ' on' : ''); document.getElementById('pumpLabel').textContent = 'PUMP ' + (on ? 'ON' : 'OFF'); }
+  log('cmd', 'pump=<span class="' + (on ? 'hlg' : 'hlr') + '">' + (on ? 'true' : 'false') + '</span> sent');
 }
-
 function flashBtn(id) {
   if (!id) return;
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.classList.add('pressed');
-  setTimeout(() => el.classList.remove('pressed'), 180);
+  const el = document.getElementById(id); if (!el) return;
+  el.classList.add('pressed'); setTimeout(() => el.classList.remove('pressed'), 180);
 }
 function flashEl(id, cls) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.classList.add(cls);
-  setTimeout(() => el.classList.remove(cls), 200);
+  const el = document.getElementById(id); if (!el) return;
+  el.classList.add(cls); setTimeout(() => el.classList.remove(cls), 200);
 }
 
-// ═══════════════════════════════════════════════
-//  KEYBOARD
-// ═══════════════════════════════════════════════
-const keyMap = {
-  'w':'W','a':'A','s':'S','d':'D',
-  'W':'W','A':'A','S':'S','D':'D'
-};
-const keyCmd = {
-  'W':'FWD','A':'LEFT','S':'REV','D':'RIGHT',
-  'ArrowUp':'UP','ArrowDown':'DOWN',
-  'ArrowLeft':'PUMP_ON','ArrowRight':'PUMP_OFF'
-};
+// ── KEYBOARD CONTROLS ──
+const keyMap = { w: 'W', a: 'A', s: 'S', d: 'D' };
+const keyCmd = { W: 'FWD', A: 'LEFT', S: 'REV', D: 'RIGHT' };
 const activeKeys = new Set();
-
 document.addEventListener('keydown', e => {
+  if (currentMode !== 'MANUAL') return;
   if (activeKeys.has(e.key)) return;
   activeKeys.add(e.key);
-
-  if (e.key in keyMap) {
-    flashBtn('btn'+keyMap[e.key]);
-    sendCmd('drive', keyCmd[e.key]);
+  const k = keyMap[e.key.toLowerCase()];
+  if (k) {
+    flashBtn('btn' + k);
+    sendCmd('drive', keyCmd[k]);
+    log('kb', 'Keyboard: <span class="hl">' + e.key.toUpperCase() + '</span> → drive=<span class="hlg">' + keyCmd[k] + '</span>');
   }
-  if (e.key === 'ArrowUp')    { e.preventDefault(); sendActuator('UP'); }
-  if (e.key === 'ArrowDown')  { e.preventDefault(); sendActuator('DOWN'); }
-  if (e.key === 'ArrowLeft')  { e.preventDefault(); sendPump(true); }
+  if (e.key === 'ArrowUp') { e.preventDefault(); sendActuator('UP'); }
+  if (e.key === 'ArrowDown') { e.preventDefault(); sendActuator('DOWN'); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); sendPump(true); }
   if (e.key === 'ArrowRight') { e.preventDefault(); sendPump(false); }
 });
-
 document.addEventListener('keyup', e => {
   activeKeys.delete(e.key);
-  if (e.key in keyMap) sendCmd('drive', 'STOP');
+  if (currentMode === 'MANUAL' && keyMap[e.key.toLowerCase()]) sendCmd('drive', 'STOP');
 });
 
-// ═══════════════════════════════════════════════
-//  STATUS DOTS
-// ═══════════════════════════════════════════════
-function setDot(id, on) {
-  const el = document.getElementById(id);
-  el.className = 'dot' + (on ? ' on' : '');
-}
-
-// Wifi check
+// ── STATUS DOTS ──
+function setDot(id, on) { document.getElementById(id).className = 'dot' + (on ? ' on' : ''); }
 if (navigator.onLine) setDot('dotWifi', true);
-window.addEventListener('online',  () => setDot('dotWifi', true));
+window.addEventListener('online', () => setDot('dotWifi', true));
 window.addEventListener('offline', () => setDot('dotWifi', false));
 
-// ═══════════════════════════════════════════════
-//  RADAR CANVAS
-// ═══════════════════════════════════════════════
-const rLeft   = document.getElementById('rLeft');
-const rCenter = document.getElementById('rCenter');
-const rRight  = document.getElementById('rRight');
-
+// ── RADAR ──
 const radarCanvas = document.getElementById('radarCanvas');
 const rc = radarCanvas.getContext('2d');
 
-function drawRadar() {
-  const W = radarCanvas.width;
-  const H = radarCanvas.height;
-  const cx = W / 2;
-  const cy = H - 10;
-  const R  = H - 20;
+function resizeRadar() {
+  const inner = document.querySelector('.radar-inner'); if (!inner) return;
+  const w = inner.clientWidth - 8, h = inner.clientHeight - 8;
+  const size = Math.min(w, h * 2.2);
+  radarCanvas.width = Math.max(size, 80);
+  radarCanvas.height = Math.max(Math.floor(size / 2.2) + 8, 50);
+}
+window.addEventListener('resize', resizeRadar);
+setTimeout(resizeRadar, 120);
 
+function drawRadar() {
+  const W = radarCanvas.width, H = radarCanvas.height;
+  const cx = W / 2, cy = H + 4, R = H - 14;
   rc.clearRect(0, 0, W, H);
 
-  // Background
+  // Background fill
   rc.fillStyle = '#010810';
-  rc.beginPath();
-  rc.arc(cx, cy, R, Math.PI, 0);
-  rc.lineTo(cx, cy);
-  rc.fill();
+  rc.beginPath(); rc.arc(cx, cy, R, Math.PI, 0); rc.lineTo(cx, cy); rc.fill();
 
-  // Grid rings
-  const rings = [0.25, 0.5, 0.75, 1.0];
-  rings.forEach(f => {
-    rc.beginPath();
-    rc.arc(cx, cy, R*f, Math.PI, 0);
-    rc.strokeStyle = `rgba(0,245,255,${f===1?0.3:0.1})`;
-    rc.lineWidth = 1;
-    rc.stroke();
-    // distance label
-    const labelDist = Math.round(MAX_DIST * f);
-    rc.fillStyle = 'rgba(0,245,255,0.3)';
-    rc.font = '9px Share Tech Mono';
-    rc.fillText(labelDist+'cm', cx + R*f + 2, cy - 2);
+  // Range rings
+  [0.25, 0.5, 0.75, 1.0].forEach(f => {
+    rc.beginPath(); rc.arc(cx, cy, R * f, Math.PI, 0);
+    rc.strokeStyle = f === 1 ? 'rgba(0,245,255,0.35)' : 'rgba(0,245,255,0.07)';
+    rc.lineWidth = 1; rc.stroke();
+    if (f < 1) {
+      rc.fillStyle = 'rgba(0,245,255,0.2)'; rc.font = '7px Share Tech Mono'; rc.textAlign = 'left';
+      rc.fillText(Math.round(MAX_DIST * f) + 'cm', cx + R * f + 2, cy - 2);
+    }
   });
 
-  // Radial lines
-  const angles = [0, 30, 60, 90, 120, 150, 180];
-  angles.forEach(a => {
+  // Angle lines
+  [0, 30, 60, 90, 120, 150, 180].forEach(a => {
     const rad = (a / 180) * Math.PI;
-    rc.beginPath();
-    rc.moveTo(cx, cy);
+    rc.beginPath(); rc.moveTo(cx, cy);
     rc.lineTo(cx - R * Math.cos(rad), cy - R * Math.sin(rad));
-    rc.strokeStyle = 'rgba(0,245,255,0.08)';
-    rc.lineWidth = 1;
-    rc.stroke();
-    // angle label
-    const lx = cx - (R+14)*Math.cos(rad);
-    const ly = cy - (R+14)*Math.sin(rad);
-    rc.fillStyle = 'rgba(0,245,255,0.35)';
-    rc.font = '8px Share Tech Mono';
+    rc.strokeStyle = 'rgba(0,245,255,0.06)'; rc.lineWidth = 1; rc.stroke();
+    rc.fillStyle = 'rgba(0,245,255,0.25)'; rc.font = '6px Share Tech Mono';
     rc.textAlign = 'center';
-    rc.fillText(a+'°', lx, ly);
+    rc.fillText(a + '°', cx - (R + 11) * Math.cos(rad), cy - (R + 11) * Math.sin(rad));
   });
   rc.textAlign = 'left';
 
-  // Sweep line (animated, based on last servo angle)
-  const lastAngle = lastData.servoAngle ?? 90;
-  const sweepRad = (lastAngle / 180) * Math.PI;
-  const grad = rc.createLinearGradient(cx, cy,
-    cx - R*Math.cos(sweepRad), cy - R*Math.sin(sweepRad));
-  grad.addColorStop(0, 'rgba(0,245,255,0.5)');
-  grad.addColorStop(1, 'rgba(0,245,255,0)');
-  rc.beginPath();
-  rc.moveTo(cx, cy);
-  rc.lineTo(cx - R*Math.cos(sweepRad), cy - R*Math.sin(sweepRad));
-  rc.strokeStyle = grad;
-  rc.lineWidth = 2;
-  rc.stroke();
+  // Sweep line
+  const sA = lastData.servoAngle ?? 90;
+  const sR = (sA / 180) * Math.PI;
+  const g = rc.createLinearGradient(cx, cy, cx - R * Math.cos(sR), cy - R * Math.sin(sR));
+  g.addColorStop(0, 'rgba(0,245,255,0.6)'); g.addColorStop(1, 'rgba(0,245,255,0)');
+  rc.beginPath(); rc.moveTo(cx, cy);
+  rc.lineTo(cx - R * Math.cos(sR), cy - R * Math.sin(sR));
+  rc.strokeStyle = g; rc.lineWidth = 2; rc.stroke();
 
-  // Sweep glow fill sector
-  rc.beginPath();
-  rc.moveTo(cx, cy);
-  const sweepWidth = 0.15; // radians
-  rc.arc(cx, cy, R, Math.PI - sweepRad - sweepWidth, Math.PI - sweepRad + sweepWidth);
-  rc.closePath();
-  rc.fillStyle = 'rgba(0,245,255,0.04)';
-  rc.fill();
-
-  // History trail points
+  // History dots
   radarHistory.forEach((pt, i) => {
     const alpha = i / radarHistory.length;
     const pRad = (pt.angle / 180) * Math.PI;
-    const pDist = Math.min(pt.dist, MAX_DIST);
-    const pR = (pDist / MAX_DIST) * R;
-    const px = cx - pR * Math.cos(pRad);
-    const py = cy - pR * Math.sin(pRad);
-
-    const isObstacle = pDist < 30;
-    rc.beginPath();
-    rc.arc(px, py, isObstacle ? 4 : 2.5, 0, Math.PI*2);
-    if (isObstacle) {
-      rc.fillStyle = `rgba(255,${34 + Math.round(alpha*50)},68,${0.4 + alpha*0.6})`;
-      rc.shadowColor = '#ff2244';
-      rc.shadowBlur = 8;
-    } else {
-      rc.fillStyle = `rgba(0,245,255,${0.2 + alpha*0.8})`;
-      rc.shadowColor = '#00f5ff';
-      rc.shadowBlur = 4;
-    }
-    rc.fill();
-    rc.shadowBlur = 0;
+    const pR = (Math.min(pt.dist, MAX_DIST) / MAX_DIST) * R;
+    const px = cx - pR * Math.cos(pRad), py = cy - pR * Math.sin(pRad);
+    const isObs = pt.dist < 30;
+    rc.beginPath(); rc.arc(px, py, isObs ? 3 : 2, 0, Math.PI * 2);
+    rc.fillStyle = isObs ? 'rgba(255,34,68,' + (0.3 + alpha * 0.7) + ')' : 'rgba(0,245,255,' + (0.15 + alpha * 0.85) + ')';
+    rc.shadowColor = isObs ? '#ff2244' : '#00f5ff'; rc.shadowBlur = isObs ? 5 : 2;
+    rc.fill(); rc.shadowBlur = 0;
   });
 
-  // Current point (biggest, brightest)
+  // Latest point
   if (radarHistory.length) {
-    const latest = radarHistory[radarHistory.length-1];
-    const pRad = (latest.angle/180)*Math.PI;
-    const pDist = Math.min(latest.dist, MAX_DIST);
-    const pR = (pDist/MAX_DIST)*R;
-    const px = cx - pR*Math.cos(pRad);
-    const py = cy - pR*Math.sin(pRad);
-    const isObs = latest.dist < 30;
-
-    rc.beginPath();
-    rc.arc(px, py, isObs ? 7 : 5, 0, Math.PI*2);
+    const l = radarHistory[radarHistory.length - 1];
+    const pRad = (l.angle / 180) * Math.PI;
+    const pR = (Math.min(l.dist, MAX_DIST) / MAX_DIST) * R;
+    const px = cx - pR * Math.cos(pRad), py = cy - pR * Math.sin(pRad);
+    const isObs = l.dist < 30;
+    rc.beginPath(); rc.arc(px, py, isObs ? 5 : 3.5, 0, Math.PI * 2);
     rc.fillStyle = isObs ? '#ff2244' : '#00f5ff';
-    rc.shadowColor = isObs ? '#ff2244' : '#00f5ff';
-    rc.shadowBlur = 16;
-    rc.fill();
-    rc.shadowBlur = 0;
-
-    // Label
+    rc.shadowColor = isObs ? '#ff2244' : '#00f5ff'; rc.shadowBlur = 12;
+    rc.fill(); rc.shadowBlur = 0;
     rc.fillStyle = isObs ? '#ff2244' : '#00f5ff';
-    rc.font = 'bold 9px Share Tech Mono';
-    rc.fillText(latest.dist+'cm', px+8, py-4);
+    rc.font = 'bold 7px Share Tech Mono'; rc.textAlign = 'left';
+    rc.fillText(l.dist + 'cm', px + 5, py - 2);
   }
 
-  // L / C / R markers at correct angles
-  const markerAngles = [{a:150,l:'L'},{a:90,l:'C'},{a:30,l:'R'}];
-  markerAngles.forEach(({a,l}) => {
-    const rad = (a/180)*Math.PI;
-    const mx = cx - (R+22)*Math.cos(rad);
-    const my = cy - (R+22)*Math.sin(rad);
-    rc.fillStyle = 'rgba(0,245,255,0.6)';
-    rc.font = 'bold 10px Orbitron, monospace';
-    rc.textAlign = 'center';
-    rc.fillText(l, mx, my+4);
+  // L / C / R labels
+  [{ a: 150, l: 'L' }, { a: 90, l: 'C' }, { a: 30, l: 'R' }].forEach(({ a, l }) => {
+    const rad = (a / 180) * Math.PI;
+    const mx = cx - (R + 16) * Math.cos(rad), my = cy - (R + 16) * Math.sin(rad);
+    rc.fillStyle = 'rgba(0,245,255,0.55)';
+    rc.font = 'bold 8px Orbitron,monospace'; rc.textAlign = 'center';
+    rc.fillText(l, mx, my + 3);
   });
   rc.textAlign = 'left';
 
-  // Center label
-  rc.fillStyle = 'rgba(0,245,255,0.2)';
-  rc.font = '8px Share Tech Mono';
-  rc.textAlign = 'center';
-  rc.fillText('SENSOR', cx, cy-4);
-  rc.textAlign = 'left';
-
-  // Outer arc
-  rc.beginPath();
-  rc.arc(cx, cy, R, Math.PI, 0);
-  rc.strokeStyle = 'rgba(0,245,255,0.5)';
-  rc.lineWidth = 1.5;
-  rc.stroke();
-  // Base line
-  rc.beginPath();
-  rc.moveTo(cx-R, cy);
-  rc.lineTo(cx+R, cy);
-  rc.stroke();
+  // Border arc
+  rc.beginPath(); rc.arc(cx, cy, R, Math.PI, 0);
+  rc.strokeStyle = 'rgba(0,245,255,0.4)'; rc.lineWidth = 1.5; rc.stroke();
+  rc.beginPath(); rc.moveTo(cx - R, cy); rc.lineTo(cx + R, cy);
+  rc.strokeStyle = 'rgba(0,245,255,0.4)'; rc.lineWidth = 1; rc.stroke();
 }
 
-// Animate radar
-function radarLoop() {
-  drawRadar();
-  requestAnimationFrame(radarLoop);
-}
-radarLoop();
+// Radar demo sweep when no Firebase
+let demoAngle = 0;
+const demoPoints = [
+  { angle: 150, dist: 82 }, { angle: 130, dist: 110 }, { angle: 110, dist: 200 },
+  { angle: 90, dist: 25 }, { angle: 70, dist: 60 }, { angle: 50, dist: 90 }, { angle: 30, dist: 74 }
+];
+setInterval(() => {
+  if (!db) {
+    demoAngle = (demoAngle + 2) % 181;
+    const nearest = demoPoints.reduce((p, c) => Math.abs(c.angle - demoAngle) < Math.abs(p.angle - demoAngle) ? c : p);
+    lastData.servoAngle = demoAngle;
+    radarHistory.push({ angle: demoAngle, dist: nearest.dist });
+    if (radarHistory.length > 120) radarHistory.shift();
+  }
+}, 30);
 
-// ═══════════════════════════════════════════════
-//  BOOT LOG
-// ═══════════════════════════════════════════════
+(function loop() { drawRadar(); requestAnimationFrame(loop); })();
+
+// ── INIT LOG ──
 log('sys', 'AGRIBOT HUD v2.0 initialized');
-log('sys', 'Firebase config pre-loaded from firmware');
-log('sys', 'Set IP or connect Firebase to begin');
-log('fb',  'DB: smart-agri-bot-89ea1 · asia-southeast1');
-log('sys', 'Keyboard: WASD=drive · ↑↓=actuator · ←→=pump');
-
-// Pre-fill from firmware
-document.getElementById('fbApiKey').value = 'AIzaSyCnXwruGNbZ9jTszB7hqn1sfVWk9wWyoMI';
-document.getElementById('fbDbUrl').value  = 'https://smart-agri-bot-89ea1-default-rtdb.asia-southeast1.firebasedatabase.app/';
+log('sys', 'AUTO mode: <span class="hlg">live dashboard active</span>');
+log('sys', 'MANUAL mode: drive controls + pump');
+log('fb', 'DB: <span class="hla">smart-agri-bot-89ea1</span> · asia-southeast1');
+log('kb', 'Keyboard: W/A/S/D · ↑↓=Actuator · ←→=pump on/off <span class="hl">(MANUAL mode only)</span>');
+setModeUI('AUTO');
 </script>
 </body>
 </html>
