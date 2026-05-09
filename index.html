@@ -736,21 +736,36 @@ function connectFirebase() {
     const proj = dbURL.split('//')[1].split('.')[0];
     log('fb', 'Firebase RTDB connected · <span class="hla">' + proj + '</span>');
     log('kb', 'Keyboard: W/A/S/D · ↑↓=Actuator · ←→=pump · <span class="hl">(MANUAL mode only)</span>');
+db.ref('/agribot/data').on('value', snap => {
+  const d = snap.val() || {};
+  lastData = d;
 
-    db.ref('/agribot/sensors').on('value', snap => {
-      const d = snap.val() || {};
-      lastData = { ...lastData, ...d };
-      updateSensors(d);
-    });
-    db.ref('/agribot/status').on('value', snap => {
-      const d = snap.val() || {};
-      lastData = { ...lastData, ...d };
-      updateStatus(d);
-    });
-    db.ref('/agribot/metrics').on('value', snap => {
-      const d = snap.val() || {};
-      updateMetrics(d);
-    });
+  updateSensors({
+    moisture: d.moisture,
+    distance: d.distance,
+    left: d.leftDistance,
+    center: d.centerDistance,
+    right: d.rightDistance,
+    servoAngle: d.servoAngle
+  });
+
+  updateStatus({
+    move: d.movement,
+    pump: d.pump,
+    actuator: d.actuator,
+    watering: d.wateringNeeded,
+    mode: d.mode,
+    ip: d.ip,
+    decision: d.movement
+  });
+
+  updateMetrics({
+    battery: "--",
+    wifi: "GOOD",
+    temp: "--"
+  });
+});
+   
   } catch (e) {
     setDot('dotFb', false);
     log('err', 'Firebase: ' + e.message);
