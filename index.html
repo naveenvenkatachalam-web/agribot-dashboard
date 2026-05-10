@@ -744,7 +744,7 @@ function updateAll(d){
     slog('ESP32 IP from Firebase: '+espIP,'g');
 document.getElementById('rtdb-ip-disp').textContent=espIP;
       const rb=document.getElementById('run-cam-btn');rb.style.opacity='1';rb.style.pointerEvents='auto';
-    if(!camStarted && !tunnelReady)startCam(espIP);
+  // if(!camStarted && !tunnelReady)startCam(espIP)
   }
 }
 
