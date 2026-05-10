@@ -553,9 +553,21 @@ function startCam(input){
   rb.style.pointerEvents = 'auto';
 
   // Refresh snapshot every 200ms
-  setInterval(() => {
-    img.src = tunnelBase + '/jpg?t=' + Date.now();
-  }, 200);
+ function loadFrame() {
+  const newImg = new Image();
+  newImg.onload = () => {
+    img.src = newImg.src;
+    img.style.display = 'block';
+    document.getElementById('cam-ph').style.display = 'none';
+  };
+  newImg.onerror = () => {
+    slog('frame error', 'r');
+  };
+  newImg.src = tunnelBase + '/jpg?t=' + Date.now();
+}
+
+loadFrame();
+setInterval(loadFrame, 300);
 
   slog('Camera LIVE via snapshot ✅', 'g');
 }
