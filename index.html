@@ -531,6 +531,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 <script>
   const CAM_STREAM_PORT = 81;
+const NGROK_URL = 'https://game-alone-paternal.ngrok-free.app'; // ← ADD THIS
 /* ── Firebase ── */
 const FB_CONFIG={
   apiKey:"AIzaSyCnXwruGNbZ9jTszB7hqn1sfVWk9wWyoMI",
@@ -755,9 +756,10 @@ function startCam(ip){
   img.style.display='none';
   document.getElementById('cam-ph').style.display='flex';
   img.src='';
-  setTimeout(()=>{img.src='http://'+ip+':81/stream?t='+Date.now();},300);
-  document.getElementById('cam-url-lbl').textContent='http://'+ip+':81/stream';
-  document.getElementById('cam-stream-url').textContent='http://'+ip+':81/stream';
+  const streamUrl = NGROK_URL ? NGROK_URL+'/stream' : 'http://'+ip+':81/stream';
+setTimeout(()=>{img.src=streamUrl+'?t='+Date.now();},300);
+document.getElementById('cam-url-lbl').textContent=streamUrl;
+document.getElementById('cam-stream-url').textContent=streamUrl;
   img.onload=()=>{
     document.getElementById('cam-ph').style.display='none';img.style.display='block';
     document.getElementById('cam-led').className='led g';
@@ -882,11 +884,12 @@ function openFullscreenCam(){
   const noSig=document.getElementById('fs-no-signal');
   const lbl=document.getElementById('fs-ip-lbl');
   if(!espIP){slog('No IP available for fullscreen cam','r');return;}
-  lbl.textContent='http://'+espIP+':81/stream';
   img.style.display='none';
   noSig.style.display='none';
   overlay.style.display='flex';
-  img.src='http://'+espIP+':81/stream?t='+Date.now();
+  const streamUrl = NGROK_URL ? NGROK_URL+'/stream' : 'http://'+espIP+':81/stream';
+img.src=streamUrl+'?t='+Date.now();
+lbl.textContent=streamUrl;
   img.onload=()=>{img.style.display='block';noSig.style.display='none';};
   img.onerror=()=>{img.style.display='none';noSig.style.display='flex';slog('Fullscreen stream error','r');};
   slog('Fullscreen cam opened → http://'+espIP+':81/stream','g');
