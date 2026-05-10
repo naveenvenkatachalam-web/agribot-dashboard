@@ -540,8 +540,7 @@ function startCam(input){
   img.style.display='none';
   document.getElementById('cam-ph').style.display='flex';
   img.src='';
- const cleanInput=input.replace(/\/+$/,'').replace('https://https://','https://');
-const streamUrl=cleanInput.startsWith('http')?cleanInput+'/stream':'http://'+cleanInput+':81/stream';
+ const streamUrl=input.trim().replace(/\/+$/,'')+'/stream';
   setTimeout(()=>{img.src=streamUrl+'?t='+Date.now();},300);
   document.getElementById('cam-url-lbl').textContent=streamUrl;
   document.getElementById('cam-stream-url').textContent=streamUrl;
