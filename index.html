@@ -540,7 +540,8 @@ function startCam(input){
   img.style.display='none';
   document.getElementById('cam-ph').style.display='flex';
   img.src='';
-  const cleanInput=input.replace(/\/+$/,''); const streamUrl=cleanInput.startsWith('http')?cleanInput+'/stream':'http://'+cleanInput+':81/stream';
+ const cleanInput=input.replace(/\/+$/,'').replace('https://https://','https://');
+const streamUrl=cleanInput.startsWith('http')?cleanInput+'/stream':'http://'+cleanInput+':81/stream';
   setTimeout(()=>{img.src=streamUrl+'?t='+Date.now();},300);
   document.getElementById('cam-url-lbl').textContent=streamUrl;
   document.getElementById('cam-stream-url').textContent=streamUrl;
@@ -779,33 +780,6 @@ function setMovement(mov){
   ['mv-fwd','mv-left','mv-right','mv-rev'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('lit');});
   if(map[mov]){const el=document.getElementById(map[mov]);if(el)el.classList.add('lit');}
 }
-
-/* ── Camera ── */
-function startCam(ip){
-  if(!ip)return;
-  camStarted=true;
-  const img=document.getElementById('cam-img');
-  img.style.display='none';
-  document.getElementById('cam-ph').style.display='flex';
-  img.src='';
-  const streamUrl = NGROK_URL ? NGROK_URL+'/stream' : 'http://'+ip+':81/stream';
-setTimeout(()=>{img.src=streamUrl+'?t='+Date.now();},300);
-document.getElementById('cam-url-lbl').textContent=streamUrl;
-document.getElementById('cam-stream-url').textContent=streamUrl;
-  img.onload=()=>{
-    document.getElementById('cam-ph').style.display='none';img.style.display='block';
-    document.getElementById('cam-led').className='led g';
-    document.getElementById('cam-tag').className='tag tg';
-    document.getElementById('cam-tag').textContent='LIVE';
-    document.getElementById('cam-status-txt').textContent='STREAMING';
-    slog('Camera connected → http://'+ip+':81/stream','g');
-  };
-  img.onerror=()=>{
-    document.getElementById('cam-status-txt').textContent='RETRYING';
-    slog('Camera reconnecting...','a');
-    setTimeout(()=>{startCam(ip);},3000);
-  };
-}
 function applyCamIP(){
   const ip=document.getElementById('esp-ip-input').value.trim();
   if(!ip)return;espIP=ip;camStarted=false;startCam(ip);
@@ -909,8 +883,8 @@ db.ref('/agribot/tunnelUrl').on('value',snap=>{
   tunnelReady=true;
   camStarted=false;
   slog('Tunnel URL: '+url,'g');
-  const cleanUrl=url.replace(/\/+$/,'');
-  startCam(cleanUrl);
+const cleanUrl=url.replace(/\/+$/,'').replace('https://https://','https://');
+startCam(cleanUrl);
 });
 /* ── Boot messages ── */
 slog('AgriBot Dashboard v3.0 — Firebase Edition','g');
