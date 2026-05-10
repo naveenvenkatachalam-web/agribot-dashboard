@@ -764,7 +764,7 @@ function startCam(ip){
     document.getElementById('cam-tag').className='tag tg';
     document.getElementById('cam-tag').textContent='LIVE';
     document.getElementById('cam-status-txt').textContent='STREAMING';
-    slog('Camera connected → http://'+ip+'/stream','g');
+    slog('Camera connected → http://'+ip+':81/stream','g');
   };
   img.onerror=()=>{
     document.getElementById('cam-status-txt').textContent='RETRYING';
@@ -889,7 +889,7 @@ function openFullscreenCam(){
   img.src='http://'+espIP+':81/stream?t='+Date.now();
   img.onload=()=>{img.style.display='block';noSig.style.display='none';};
   img.onerror=()=>{img.style.display='none';noSig.style.display='flex';slog('Fullscreen stream error','r');};
-  slog('Fullscreen cam opened → http://'+espIP+'/stream','g');
+  slog('Fullscreen cam opened → http://'+espIP+':81/stream','g');
 }
 function closeFullscreenCam(){
   const overlay=document.getElementById('fs-overlay');
