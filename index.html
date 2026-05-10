@@ -535,33 +535,29 @@ const NGROK_URL = '';
   /* ── Camera ── */
 function startCam(input){
   if(!input) return;
-  camStarted=true;
-  const img=document.getElementById('cam-img');
-  img.style.display='none';
-  document.getElementById('cam-ph').style.display='flex';
-  img.src='';
- const streamUrl=input.trim().replace(/\/+$/,'')+'/stream';
-  setTimeout(()=>{img.src=streamUrl+'?t='+Date.now();},300);
-  document.getElementById('cam-url-lbl').textContent=streamUrl;
-  document.getElementById('cam-stream-url').textContent=streamUrl;
-  document.getElementById('rtdb-ip-disp').textContent=streamUrl;
-  const rb=document.getElementById('run-cam-btn');
-  rb.style.opacity='1';rb.style.pointerEvents='auto';
-  img.onload=()=>{
-    document.getElementById('cam-ph').style.display='none';
-    img.style.display='block';
-    document.getElementById('cam-led').className='led g';
-    document.getElementById('cam-tag').className='tag tg';
-    document.getElementById('cam-tag').textContent='LIVE';
-    document.getElementById('cam-status-txt').textContent='STREAMING';
-    slog('Camera LIVE ✅','g');
-  };
-  img.onerror=()=>{
-    camStarted=false;
-    document.getElementById('cam-status-txt').textContent='RETRYING';
-    slog('Camera retry...','a');
-    setTimeout(()=>{startCam(input);},4000);
-  };
+  camStarted = true;
+  const img = document.getElementById('cam-img');
+  const tunnelBase = input.trim().replace(/\/+$/,'');
+  
+  document.getElementById('cam-ph').style.display = 'none';
+  img.style.display = 'block';
+  document.getElementById('cam-led').className = 'led g';
+  document.getElementById('cam-tag').className = 'tag tg';
+  document.getElementById('cam-tag').textContent = 'LIVE';
+  document.getElementById('cam-status-txt').textContent = 'STREAMING';
+  document.getElementById('cam-url-lbl').textContent = tunnelBase + '/jpg';
+  document.getElementById('cam-stream-url').textContent = tunnelBase + '/jpg';
+  document.getElementById('rtdb-ip-disp').textContent = tunnelBase;
+  const rb = document.getElementById('run-cam-btn');
+  rb.style.opacity = '1';
+  rb.style.pointerEvents = 'auto';
+
+  // Refresh snapshot every 200ms
+  setInterval(() => {
+    img.src = tunnelBase + '/jpg?t=' + Date.now();
+  }, 200);
+
+  slog('Camera LIVE via snapshot ✅', 'g');
 }
 
 /* ── Firebase ── */
