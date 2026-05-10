@@ -530,6 +530,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 </div><!-- end .app -->
 
 <script>
+  const CAM_STREAM_PORT = 81;
 /* ── Firebase ── */
 const FB_CONFIG={
   apiKey:"AIzaSyCnXwruGNbZ9jTszB7hqn1sfVWk9wWyoMI",
@@ -706,7 +707,7 @@ function updateAll(d){
     document.getElementById('ip-disp').textContent=espIP;
     document.getElementById('raw-ip').textContent=espIP;
     document.getElementById('esp-ip-input').placeholder=espIP;
-    document.getElementById('cam-stream-url').textContent='http://'+espIP+'/stream';
+    document.getElementById('cam-stream-url').textContent='http://'+espIP+':81/stream';
     slog('ESP32 IP from Firebase: '+espIP,'g');
 document.getElementById('rtdb-ip-disp').textContent=espIP;
       const rb=document.getElementById('run-cam-btn');rb.style.opacity='1';rb.style.pointerEvents='auto';
@@ -754,9 +755,9 @@ function startCam(ip){
   img.style.display='none';
   document.getElementById('cam-ph').style.display='flex';
   img.src='';
-  setTimeout(()=>{img.src='http://'+ip+'/stream?t='+Date.now();},300);
-  document.getElementById('cam-url-lbl').textContent='http://'+ip+'/stream';
-  document.getElementById('cam-stream-url').textContent='http://'+ip+'/stream';
+  setTimeout(()=>{img.src='http://'+ip+':81/stream?t='+Date.now();},300);
+  document.getElementById('cam-url-lbl').textContent='http://'+ip+':81/stream';
+  document.getElementById('cam-stream-url').textContent='http://'+ip+':81/stream';
   img.onload=()=>{
     document.getElementById('cam-ph').style.display='none';img.style.display='block';
     document.getElementById('cam-led').className='led g';
@@ -881,11 +882,11 @@ function openFullscreenCam(){
   const noSig=document.getElementById('fs-no-signal');
   const lbl=document.getElementById('fs-ip-lbl');
   if(!espIP){slog('No IP available for fullscreen cam','r');return;}
-  lbl.textContent='http://'+espIP+'/stream';
+  lbl.textContent='http://'+espIP+':81/stream';
   img.style.display='none';
   noSig.style.display='none';
   overlay.style.display='flex';
-  img.src='http://'+espIP+'/stream?t='+Date.now();
+  img.src='http://'+espIP+':81/stream?t='+Date.now();
   img.onload=()=>{img.style.display='block';noSig.style.display='none';};
   img.onerror=()=>{img.style.display='none';noSig.style.display='flex';slog('Fullscreen stream error','r');};
   slog('Fullscreen cam opened → http://'+espIP+'/stream','g');
