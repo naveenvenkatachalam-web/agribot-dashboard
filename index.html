@@ -532,54 +532,38 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 <script>
   const CAM_STREAM_PORT = 81;
 const NGROK_URL = '';
-
-// Read tunnel URL from Firebase automatically
-db.ref('/agribot/tunnelUrl').on('value', snap => {
-  const url = snap.val();
-  if (!url) return;
-  slog('Tunnel URL: ' + url, 'g');
-  if (!camStarted) startCam(url);
-});
-
-// Override startCam to accept full URL or IP
-function startCam(input) {
-  camStarted = true;
-  const img = document.getElementById('cam-img');
-  img.style.display = 'none';
-  document.getElementById('cam-ph').style.display = 'flex';
-  img.src = '';
-
-  // If input starts with http, use directly, else build URL
-  const streamUrl = input.startsWith('http')
-    ? input + '/stream'
-    : 'http://' + input + ':81/stream';
-
-  setTimeout(() => { img.src = streamUrl + '?t=' + Date.now(); }, 300);
-  document.getElementById('cam-url-lbl').textContent = streamUrl;
-  document.getElementById('cam-stream-url').textContent = streamUrl;
-  document.getElementById('rtdb-ip-disp').textContent = streamUrl;
-
-  const rb = document.getElementById('run-cam-btn');
-  rb.style.opacity = '1';
-  rb.style.pointerEvents = 'auto';
-
-  img.onload = () => {
-    document.getElementById('cam-ph').style.display = 'none';
-    img.style.display = 'block';
-    document.getElementById('cam-led').className = 'led g';
-    document.getElementById('cam-tag').className = 'tag tg';
-    document.getElementById('cam-tag').textContent = 'LIVE';
-    document.getElementById('cam-status-txt').textContent = 'STREAMING';
-    slog('Camera LIVE ✅', 'g');
+  /* ── Camera ── */
+function startCam(input){
+  if(!input) return;
+  camStarted=true;
+  const img=document.getElementById('cam-img');
+  img.style.display='none';
+  document.getElementById('cam-ph').style.display='flex';
+  img.src='';
+  const streamUrl=input.startsWith('http')?input+'/stream':'http://'+input+':81/stream';
+  setTimeout(()=>{img.src=streamUrl+'?t='+Date.now();},300);
+  document.getElementById('cam-url-lbl').textContent=streamUrl;
+  document.getElementById('cam-stream-url').textContent=streamUrl;
+  document.getElementById('rtdb-ip-disp').textContent=streamUrl;
+  const rb=document.getElementById('run-cam-btn');
+  rb.style.opacity='1';rb.style.pointerEvents='auto';
+  img.onload=()=>{
+    document.getElementById('cam-ph').style.display='none';
+    img.style.display='block';
+    document.getElementById('cam-led').className='led g';
+    document.getElementById('cam-tag').className='tag tg';
+    document.getElementById('cam-tag').textContent='LIVE';
+    document.getElementById('cam-status-txt').textContent='STREAMING';
+    slog('Camera LIVE ✅','g');
   };
-
-  img.onerror = () => {
-    camStarted = false;
-    document.getElementById('cam-status-txt').textContent = 'RETRYING';
-    slog('Camera retry...', 'a');
-    setTimeout(() => { startCam(input); }, 4000);
+  img.onerror=()=>{
+    camStarted=false;
+    document.getElementById('cam-status-txt').textContent='RETRYING';
+    slog('Camera retry...','a');
+    setTimeout(()=>{startCam(input);},4000);
   };
-} // ← ADD THIS
+}
+
 /* ── Firebase ── */
 const FB_CONFIG={
   apiKey:"AIzaSyCnXwruGNbZ9jTszB7hqn1sfVWk9wWyoMI",
@@ -918,7 +902,13 @@ function slog(msg,type=''){
 function clearLog(){document.getElementById('slog').innerHTML='';}
 function ts(){return new Date().toLocaleTimeString('en',{hour12:false});}
 setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString();},1000);
-
+/* ── Tunnel URL from Firebase ── */
+db.ref('/agribot/tunnelUrl').on('value',snap=>{
+  const url=snap.val();
+  if(!url)return;
+  slog('Tunnel URL: '+url,'g');
+  if(!camStarted)startCam(url);
+});
 /* ── Boot messages ── */
 slog('AgriBot Dashboard v3.0 — Firebase Edition','g');
 slog('Project: smart-agri-bot-89ea1 · Region: asia-southeast1','g');
