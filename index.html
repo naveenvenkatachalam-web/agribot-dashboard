@@ -540,7 +540,7 @@ function startCam(input){
   img.style.display='none';
   document.getElementById('cam-ph').style.display='flex';
   img.src='';
-  const streamUrl=input.startsWith('http')?input+'/stream':'http://'+input+':81/stream';
+  const cleanInput=input.replace(/\/+$/,''); const streamUrl=cleanInput.startsWith('http')?cleanInput+'/stream':'http://'+cleanInput+':81/stream';
   setTimeout(()=>{img.src=streamUrl+'?t='+Date.now();},300);
   document.getElementById('cam-url-lbl').textContent=streamUrl;
   document.getElementById('cam-stream-url').textContent=streamUrl;
@@ -909,7 +909,8 @@ db.ref('/agribot/tunnelUrl').on('value',snap=>{
   tunnelReady=true;
   camStarted=false;
   slog('Tunnel URL: '+url,'g');
-  startCam(url);
+  const cleanUrl=url.replace(/\/+$/,'');
+  startCam(cleanUrl);
 });
 /* ── Boot messages ── */
 slog('AgriBot Dashboard v3.0 — Firebase Edition','g');
